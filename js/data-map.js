@@ -1,8 +1,8 @@
 (function () {
 
-    d3.json("/data/json/counties.json", function (err, counties) {
+    d3.json("/data/json/zone-centers.json", function (err, zones) {
         if (err) {
-            console.log("Error on counties.json load.");
+            console.log("Error on zone-centers.json load.");
             console.log(err);
             return;
         }
@@ -41,8 +41,7 @@
                     }, d);
                 });
 
-                if (num < 30) loadCsv(num + 1);
-                if (window.onDataReady && num == 1) window.onDataReady(mapped, counties);
+                if (window.onDataReady) window.onDataReady({ day: num, data: mapped }, zones);
 
             });
         };
