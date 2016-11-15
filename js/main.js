@@ -5,7 +5,6 @@ function initMap() {
 		center: {lat: 28.3317, lng: -81.3246},
 		zoom: 10
 		});
-		calculateCenters();
 		if (!google.maps.Polygon.prototype.getBounds) {
  
 		google.maps.Polygon.prototype.getBounds=function(){
