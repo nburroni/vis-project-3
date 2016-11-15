@@ -5,7 +5,7 @@ function initMap() {
 		center: {lat: 28.3317, lng: -81.3246},
 		zoom: 10
 		});
-		
+		calculateCenters();
 		if (!google.maps.Polygon.prototype.getBounds) {
  
 		google.maps.Polygon.prototype.getBounds=function(){
@@ -19,23 +19,47 @@ function initMap() {
   ** Read each JSON feature object.Get coordinate and convert it into object {lat: ,lng:}
   ********************************************************************************************/
   d3.json("/data/json/zones-geo.json", function (err, GEO_JSON) {
-      GEO_JSON.features.forEach(function(value,key){
-          //covert given coordinates array into
-          var latlog = getLatlongMap(value.geometry.coordinates[0]);
-          //console.log(value);
-
-          var drawZone = new google.maps.Polygon({
-              paths:latlog ,
-              strokeColor: "black",
-              strokeOpacity: 0.2,
-              strokeWeight: 1.5,
-              fillColor: "green",
-              fillOpacity: 0.1
+      d3.json("/data/json/zone-centers.json", function (err, centers){
+          // Check if the coordinates array is separated in multiple arrays
+          GEO_JSON.features.forEach(function (polygon){
+              var coordinates = polygon.geometry.coordinates;
+              // If more than one array is present, concat all the children into one array
+              if (coordinates.length != 1){
+                  polygon.geometry.coordinates = [].concat.apply([], coordinates);
+              }
           });
-          drawZone.setMap(map);
+          GEO_JSON.features.forEach(function(value,key){
+              //covert given coordinates array into
+              var latlog = getLatlongMap(value.geometry.coordinates[0]);
+              //console.log(value);
 
-          drawZones.push(drawZone);
-      });
+              var drawZone = new google.maps.Polygon({
+                  paths:latlog ,
+                  strokeColor: "black",
+                  strokeOpacity: 0.2,
+                  strokeWeight: 1.5,
+                  fillColor: "green",
+                  fillOpacity: 0.1
+              });
+              drawZone.setMap(map);
+
+              drawZones.push(drawZone);
+          });
+
+          // Draw red circles in center of each polygon
+          centers.forEach(function (d){
+              var cityCircle = new google.maps.Circle({
+                  strokeColor: '#FF0000',
+                  strokeOpacity: 0.8,
+                  strokeWeight: 2,
+                  fillColor: '#FF0000',
+                  fillOpacity: 0.70,
+                  center: new google.maps.LatLng(d.center.lat, d.center.lng),
+                  radius: 200
+              });
+              cityCircle.setMap(map);
+          });
+      })
   })
 }
 
