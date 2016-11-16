@@ -28,7 +28,7 @@ function initMap() {
               }
           });
           GEO_JSON.features.forEach(function(value,key){
-              //covert given coordinates array into
+              //convert given coordinates array into
               var latlog = getLatlongMap(value.geometry.coordinates[0]);
               //console.log(value);
 
@@ -41,6 +41,33 @@ function initMap() {
                   fillOpacity: 0.1
               });
               drawZone.setMap(map);
+			  
+			  google.maps.event.addListener(drawZone, 'click', function (event) {
+			//Make all lighter
+			//console.log("The zone clicked on is: " + drawZone);
+
+			for(var index=0;index<drawZones.length;index++){
+				drawZones[index].setOptions({strokeWeight: 2.0,fillOpacity: 0.2})
+			}
+
+			//Make selected darker
+			drawZone.setOptions({strokeWeight: 1.0,fillOpacity: 0.8});
+			
+			//Get bound for polygon// calculate the bounds of the polygon
+			var bounds = new google.maps.LatLngBounds();
+			
+			
+		});  
+		
+		google.maps.event.addListener(drawZone, 'dblclick', function (event) {
+			//Make all lighter
+			//console.log("The zone clicked on is: " + drawZone);
+
+	
+         	map.setCenter(drawZone.getBounds().getCenter());
+			map.setZoom(11); 	
+			
+		});  
 
               drawZones.push(drawZone);
           });
