@@ -1,6 +1,6 @@
 (function () {
 
-    d3.json("/data/json/zone-centers.json", function (err, zones) {
+    d3.json("./data/json/zone-centers.json", function (err, zones) {
         if (err) {
             console.log("Error on zone-centers.json load.");
             console.log(err);
@@ -8,7 +8,7 @@
         }
 
         var loadCsv = function (num) {
-            d3.csv(`/data/csv/${num}.csv`, function (err, data) {
+            d3.csv(`./data/csv/${num}.csv`, function (err, data) {
                 if (err) {
                     console.log(`Error on ${num}.csv load.`);
                     console.log(err);

@@ -17,8 +17,8 @@ function initMap() {
   /********************************************************************************************
   ** Read each JSON feature object.Get coordinate and convert it into object {lat: ,lng:}
   ********************************************************************************************/
-  d3.json("/data/json/zones-geo.json", function (err, GEO_JSON) {
-      d3.json("/data/json/zone-centers.json", function (err, centers){
+  d3.json("./data/json/zones-geo.json", function (err, GEO_JSON) {
+      d3.json("./data/json/zone-centers.json", function (err, centers){
           // Check if the coordinates array is separated in multiple arrays
           GEO_JSON.features.forEach(function (polygon){
               var coordinates = polygon.geometry.coordinates;
