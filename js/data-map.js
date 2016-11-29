@@ -1,5 +1,8 @@
 (function () {
 
+    /**
+     *
+     */
     d3.json("./data/json/zone-centers.json", function (err, zones) {
         if (err) {
             console.log("Error on zone-centers.json load.");
