@@ -6,8 +6,36 @@ var zoneColor = 0;
 startTime = 10;
 var color_range=d3.scaleLinear().domain([0,800]).range(["white","blue"]);
 
+var width = 50,
+    height = 150;
+	
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
+var gradient = svg.append("defs")
+  .append("linearGradient")
+    .attr("id", "gradient")
+    .attr("x1", "0%")
+    .attr("y1", "100%")
+    .attr("x2", "0%")
+    .attr("y2", "0%")
+    .attr("spreadMethod", "pad");
 
+gradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", color_range(0))
+    .attr("stop-opacity", 1);
+
+gradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", color_range(800))
+    .attr("stop-opacity", 1);
+	
+svg.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+    .style("fill", "url(#gradient)");
 
 
 
@@ -17,7 +45,7 @@ function initMap() {
             lat: 28.3317,
             lng: -81.3246
         },
-        zoom: 10
+        zoom: 9
     });
     if (!google.maps.Polygon.prototype.getBounds) {
         google.maps.Polygon.prototype.getBounds = function() {
@@ -29,7 +57,20 @@ function initMap() {
         }
     }
 	
-	
+	var infowindow = new google.maps.InfoWindow();
+	var legend = document.createElement('div');
+        legend.id = 'legend';
+        var content = [];
+        content.push('<h3>Inbound Trips</h3>');
+        content.push('<p><div class="color red"></div>Battus</p>');
+        content.push('<p><div class="color yellow"></div>Speyeria</p>');
+        content.push('<p><div class="color green"></div>Papilio</p>');
+        content.push('<p><div class="color blue"></div>Limenitis</p>');
+        content.push('<p><div class="color purple"></div>Myscelia</p>');
+        content.push('<p>*Data is fictional</p>');
+        legend.innerHTML = content.join('');
+        legend.index = 1;
+		
 	window.onDataReady = function(data, zones) {
 
     //zonesData = data;
@@ -79,6 +120,21 @@ function initMap() {
 						drawZones[i].setColorValue = 0;
 					}
 					
+					//map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(
+					//document.getElementById('legend'));
+					
+					// Create the legend and display on the map
+					if( map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1){
+						map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+					}
+					else{
+			console.log("test");
+			map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
+			map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+		}
+        
+        
+					
                     for(var i=0; i<data.data.length; i++){
 						//console.log(data.data[i].Origin_Zone);
                                     if( data.data[i].Destination_Zone == value.properties.OBJECTID_1){
@@ -124,23 +180,10 @@ function initMap() {
                 google.maps.event.addListener(drawZone, 'dblclick', function(event) {
                     //Make all lighter
                     //console.log("The zone clicked on is: " + drawZone);
-					
-					/*for(var i=0; i<data.data.length; i++){
-						//console.log(data.data[i].Origin_Zone);
-                                    if( data.data[i].Origin_Zone == value.properties.OBJECTID_1){
-										var infowindow = new google.maps.InfoWindow({
-										content: contentString
-										});
-										}
-									}
-
-                    }*/
-					
+					map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
 					console.log(value.properties);
-					var contentString = "<p>Zone: " + value.properties.OBJECTID_1 + ".</p><p>County: " + value.properties.COUNTY + ".</p>";
-					var infowindow = new google.maps.InfoWindow({
-					content: contentString
-					});
+					infowindow.close();
+					infowindow.setContent("<p>Zone: " + value.properties.OBJECTID_1 + ".</p><p>County: " + value.properties.COUNTY + ".</p>");
 					infowindow.setPosition(drawZone.getBounds().getCenter());
 					infowindow.open(map);
 					for(var i=0; i<drawZones.length; i++){
