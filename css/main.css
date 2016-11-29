@@ -1,0 +1,52 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#map {
+    height: 100%;
+}
+
+#legend {
+        font-family: Arial, sans-serif;
+        background: #fff;
+        padding: 10px;
+        margin: 10px;
+        border: 3px solid #000;
+}
+#legend h3 {
+        margin-top: 0;
+}
+      
+#legend img {
+        vertical-align: middle;
+      }
+	  
+	  .color {
+        border: 1px solid;
+        height: 12px;
+        width: 12px;
+        margin-right: 3px;
+        float: left;
+      }
+
+      .red {
+        background: #C00;
+      }
+
+      .yellow {
+        background: #FF3;
+      }
+
+      .green {
+        background: #6F0;
+      }
+
+      .blue {
+        background: #06C;
+      }
+
+      .purple {
+        background: #63C;
+      }      	  
