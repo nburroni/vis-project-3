@@ -4,39 +4,7 @@ var purpose;
 var date;
 var zoneColor = 0;
 startTime = 10;
-var color_range=d3.scaleLinear().domain([0,800]).range(["white","blue"]);
-
-var width = 50,
-    height = 150;
-	
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
-
-var gradient = svg.append("defs")
-  .append("linearGradient")
-    .attr("id", "gradient")
-    .attr("x1", "0%")
-    .attr("y1", "100%")
-    .attr("x2", "0%")
-    .attr("y2", "0%")
-    .attr("spreadMethod", "pad");
-
-gradient.append("stop")
-    .attr("offset", "0%")
-    .attr("stop-color", color_range(0))
-    .attr("stop-opacity", 1);
-
-gradient.append("stop")
-    .attr("offset", "100%")
-    .attr("stop-color", color_range(800))
-    .attr("stop-opacity", 1);
-	
-svg.append("rect")
-    .attr("width", width)
-    .attr("height", height)
-    .style("fill", "url(#gradient)");
-
+var color_range=d3.scaleLinear().domain([0,800]).range(["rgba(253,212,158,.8)","rgba(179,0,0,.8)"]);
 
 
 function initMap() {
@@ -116,7 +84,7 @@ function initMap() {
 					//console.log(drawZones.length);
 					for(var i=0; i<drawZones.length; i++){
 						
-						drawZones[i].setOptions({fillColor: "black",strokeWeight: 1.5,fillOpacity: 1});
+						drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)",strokeWeight: 0,fillOpacity: 1});
 						drawZones[i].setColorValue = 0;
 					}
 					
@@ -219,7 +187,7 @@ function initMap() {
             });
 
             // Draw red circles in center of each polygon
-            centers.forEach(function(d) {
+            /*centers.forEach(function(d) {
                 var cityCircle = new google.maps.Circle({
                     strokeColor: '#FF0000',
                     strokeOpacity: 0.8,
@@ -230,7 +198,7 @@ function initMap() {
                     radius: 200
                 });
                 cityCircle.setMap(map);
-            });
+            });*/
         })
     })
 	}
