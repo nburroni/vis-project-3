@@ -12,6 +12,7 @@ var totalOrigin;
 var zoneColor = 0;
 startTime = 10;
 var color_range = d3.scaleLinear().domain([0, 500]).range(["rgba(253,212,158,.8)", "rgba(179,0,0,.8)"]);
+var topCongestedList = {};
 
 const darkMapJson = [
     {
@@ -756,7 +757,13 @@ function initMap() {
     legend2.innerHTML = content2.join('');
     legend2.index = 1;
 
-    var legend3 = document.createElement('div');
+    
+
+    window.onDataReady = function(data, zones, GEO_JSON) {
+	    topCongestedList = data.topCongested;
+		console.log(topCongestedList);
+		
+		var legend3 = document.createElement('div');
     legend3.id = 'legend3';
 
     var content3 = [];
@@ -769,8 +776,7 @@ function initMap() {
 
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
     directionsService = new google.maps.DirectionsService();
-
-    window.onDataReady = function(data, centers, GEO_JSON) {
+	
         for (var i = 0; i < drawZones.length; i++) {
             drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1, zIndex: 0});
             drawZones[i].setColorValue = 0;
@@ -782,6 +788,7 @@ function initMap() {
          ** Read each JSON feature object.Get coordinate and convert it into object {lat: ,lng:}
          ********************************************************************************************/
 
+            d3.json("./data/json/zone-centers.json", function(err, centers) {
                 // Check if the coordinates array is separated in multiple arrays
                 GEO_JSON.features.forEach(function(polygon) {
                     var coordinates = polygon.geometry.coordinates;
@@ -818,6 +825,7 @@ function initMap() {
 
                     google.maps.event.addListener(drawZone, 'click', function (event) {
 
+					console.log("top congested:" + topCongestedList);
                         if (clickedZone && clickedZone == value.properties){
                             for (var i = 0; i < drawZones.length; i++) {
                                 drawZones[i].setOptions({fillColor: "green", strokeWeight: 1.5, fillOpacity: 0.2});
@@ -938,13 +946,13 @@ function initMap() {
                             //document.getElementById('legend'));
 
                             // Create the legend and display on the map
-                            if(map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1){
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                            if(map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].length < 1){
+                                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(legend);
                             }
                             else {
                                 console.log("test");
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].pop(legend);
+                                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(legend);
                             }
 
 
@@ -1091,6 +1099,7 @@ function initMap() {
 
                     drawZones.push(drawZone);
                 });
+            });
     }
 }
 
@@ -1120,7 +1129,7 @@ function CenterControl(controlDiv, map) {
     controlUI.style.cursor = 'pointer';
     controlUI.style.marginBottom = '4px';
     controlUI.style.textAlign = 'center';
-    controlUI.style.width = '30px';
+    controlUI.style.width = '220px';
     controlUI.title = '1';
     controlDiv.appendChild(controlUI);
 
@@ -1132,7 +1141,9 @@ function CenterControl(controlDiv, map) {
     controlText.style.lineHeight = '16px';
     controlText.style.paddingLeft = '2px';
     controlText.style.paddingRight = '2px';
-    controlText.innerHTML = '1';
+	controlText.innerHTML = '1';
+	//console.log(topCongestedList);
+    controlText.innerHTML = 'From Zone' + topCongestedList[0].Origin_Zone_Num +'to Zone' + topCongestedList[0].Destination_Zone_Num;
     controlUI.appendChild(controlText);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1149,8 +1160,8 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI.style.width = '30px';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1162,7 +1173,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '2';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[1].Origin_Zone_Num +'to Zone' + topCongestedList[1].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1179,7 +1190,7 @@ function CenterControl(controlDiv, map) {
     controlUI3.style.cursor = 'pointer';
     controlUI3.style.marginBottom = '10px';
     controlUI3.style.textAlign = 'center';
-    controlUI3.style.width = '30px';
+    controlUI3.style.width = '220px';
     controlUI3.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI3);
 
@@ -1191,7 +1202,7 @@ function CenterControl(controlDiv, map) {
     controlText3.style.lineHeight = '16px';
     controlText3.style.paddingLeft = '5px';
     controlText3.style.paddingRight = '5px';
-    controlText3.innerHTML = '3';
+    controlText3.innerHTML = 'From Zone' + topCongestedList[2].Origin_Zone_Num +'to Zone' + topCongestedList[2].Destination_Zone_Num;
     controlUI3.appendChild(controlText3);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1208,7 +1219,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1220,7 +1231,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '4';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[3].Origin_Zone_Num +'to Zone' + topCongestedList[3].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1237,7 +1248,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1249,7 +1260,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '5';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[4].Origin_Zone_Num +'to Zone' + topCongestedList[4].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1266,7 +1277,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1278,7 +1289,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '6';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[5].Origin_Zone_Num +'to Zone' + topCongestedList[5].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1295,7 +1306,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1307,7 +1318,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '7';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[6].Origin_Zone_Num +'to Zone' + topCongestedList[6].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1324,7 +1335,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1336,7 +1347,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '8';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[7].Origin_Zone_Num +'to Zone' + topCongestedList[7].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1353,7 +1364,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1365,7 +1376,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '9';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[8].Origin_Zone_Num +'to Zone' + topCongestedList[8].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
@@ -1382,7 +1393,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.style.cursor = 'pointer';
     controlUI2.style.marginBottom = '10px';
     controlUI2.style.textAlign = 'center';
-    controlUI2.style.width = '30px';
+    controlUI2.style.width = '220px';
     controlUI2.title = 'Click to recenter the map';
     controlDiv.appendChild(controlUI2);
 
@@ -1394,7 +1405,7 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = '10';
+    controlText2.innerHTML = 'From Zone' + topCongestedList[9].Origin_Zone_Num +'to Zone' + topCongestedList[9].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
