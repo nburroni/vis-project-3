@@ -780,16 +780,26 @@ function initMap() {
                             clickedZone = undefined;
                         }
                         else if (clickedZone) {
-                            directionsDisplays.forEach((d) => {
-                                d.setDirections({routes: []});
-                            });
+
                             var clicked = subClickedZones.find(function (d){return d == value.properties});
                             if (clicked){
                                 subClickedZones.splice(subClickedZones.indexOf(clicked, 1));
                             }
                             else{
-                                subClickedZones.push (value.properties);
-                                calcRoute([{sourceCenter: centers[value.properties.OBJECTID_1 - 1].center, destCenter: centers[clickedZone.OBJECTID_1 - 1].center, source: value.properties.OBJECTID_1, dest: clickedZone.OBJECTID_1}])
+                                var selectable = false;
+                                data.data.forEach((d) => {
+                                    if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
+                                        selectable = true;
+                                    }
+                                });
+                                if (selectable){
+                                    directionsDisplays.forEach((d) => {
+                                        d.setDirections({routes: []});
+                                    });
+                                    subClickedZones.push (value.properties);
+                                    calcRoute([{sourceCenter: centers[value.properties.OBJECTID_1 - 1].center, destCenter: centers[clickedZone.OBJECTID_1 - 1].center, source: value.properties.OBJECTID_1, dest: clickedZone.OBJECTID_1}])
+                                }
+
                             }
                         }
                         else{
@@ -799,7 +809,6 @@ function initMap() {
                             //console.log(data.data[0].Destination_Zone);
                             //console.log(drawZones.length);
                             for (var i = 0; i < drawZones.length; i++) {
-
                                 drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1});
                                 drawZones[i].setColorValue = 0;
                             }
