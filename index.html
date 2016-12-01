@@ -13,13 +13,13 @@
 
     <div id="filters" class="form-inline">
         <div class="filter day-of-month">
-            <!--<span>Day of Month</span>-->
+            <span>Day of Month</span>
             <select id="day-of-month" class="form-control"></select>
         </div>
-        <div class="filter day-of-week">
-            <!--<span>Day of Week</span>-->
+        <!--<div class="filter day-of-week">
+            &lt;!&ndash;<span>Day of Week</span>&ndash;&gt;
             <select id="day-of-week" class="form-control"></select>
-        </div>
+        </div>-->
         <div class="filter hour-range">
             <!--<span>Hours</span>-->
             <select id="hour-range" multiple="multiple"></select>
@@ -36,12 +36,21 @@
             <!--<span>County</span>-->
             <select id="county" multiple="multiple"></select>
         </div>
+        <div class="filter apply">Apply</div>
     </div>
     <div class="dark-mode-toggle">
         <input id="dark-mode" type="checkbox" data-toggle="toggle" data-on="Night Mode" data-off="Day Mode">
     </div>
     <div id="map"></div>
 
+    <div id="loader">
+        <div class="blob blob-0"></div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+        <div class="blob blob-5"></div>
+    </div>
 </body>
 
       <!-- Loading all script file -->

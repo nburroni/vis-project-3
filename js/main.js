@@ -700,6 +700,8 @@ var clicked = false;
 var moused = false;
 var destination = false;
 
+var drawZones = [];
+
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
@@ -766,11 +768,16 @@ function initMap() {
     var centerControl = new CenterControl(legend3, map);
 
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
+    directionsService = new google.maps.DirectionsService();
 
     window.onDataReady = function(data, zones) {
-        directionsService = new google.maps.DirectionsService();
-
-        var drawZones = [];
+        for (var i = 0; i < drawZones.length; i++) {
+            drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1, zIndex: 0});
+            drawZones[i].setColorValue = 0;
+        }
+        directionsDisplays.forEach((d) => {
+            d.setDirections({routes: []});
+        });
         /********************************************************************************************
          ** Read each JSON feature object.Get coordinate and convert it into object {lat: ,lng:}
          ********************************************************************************************/

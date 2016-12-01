@@ -16,6 +16,7 @@
      *
      */
     d3.json("./data/json/zone-centers.json", function (err, zones) {
+        const loader = d3.select('#loader');
         if (err) {
             console.log("Error on zone-centers.json load.");
             console.log(err);
@@ -30,7 +31,8 @@
             let zoneCounties = {};
             zonesGeo.features.forEach(f => zoneCounties[f.properties.TAZ_ID] = f.properties.COUNTY.charAt(0) + f.properties.COUNTY.substring(1).toLowerCase());
 
-            var loadCsv = function (num) {
+            var loadCsv = function (num, filters) {
+                loader.classed('hidden', false);
                 d3.csv(`./data/csv/${num}.csv`, function (err, data) {
                     if (err) {
                         console.log(`Error on ${num}.csv load.`);
@@ -69,7 +71,7 @@
                     let ranges = [];
                     mapped.forEach(d => ranges[d.Time_Range.from] = Object.assign({str: `${d.Time_Range_Str.from} to ${d.Time_Range_Str.to}`}, d.Time_Range));
                     while (!ranges[0]) ranges.shift();
-                    d3.select('#hour-range').selectAll('option')
+                    d3.select('#hour-range').selectAll('option').remove()
                         .data(ranges).enter()
                         .append('option')
                         .attr('value', d => d.from)
@@ -82,7 +84,7 @@
 
                     let subscribers = {};
                     mapped.forEach(d => subscribers[d.Subscriber_Class] = d.Subscriber_Class);
-                    d3.select('#subscriber').selectAll('option')
+                    d3.select('#subscriber').selectAll('option').remove()
                         .data(Object.keys(subscribers)).enter()
                         .append('option')
                         .attr('value', d => d)
@@ -95,7 +97,7 @@
 
                     let purposes = {};
                     mapped.forEach(d => purposes[d.Purpose] = d.Purpose);
-                    d3.select('#purpose').selectAll('option')
+                    d3.select('#purpose').selectAll('option').remove()
                         .data(Object.keys(purposes)).enter()
                         .append('option')
                         .attr('value', d => d)
@@ -111,7 +113,7 @@
                         counties[d.Origin_County] = d.Origin_County;
                         counties[d.Destination_County] = d.Destination_County;
                     });
-                    d3.select('#county').selectAll('option')
+                    d3.select('#county').selectAll('option').remove()
                         .data(Object.keys(counties)).enter()
                         .append('option')
                         .attr('value', d => d)
@@ -128,19 +130,26 @@
                         direction: 'dest',
                         topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
                     }, zones);
+                    loader.classed('hidden', true);
 
                 });
 
                 d3.select('select#day-of-month').selectAll('option')
-                    .data(d3.range(1, 31)).enter()
+                    .data(d3.range(1, 31))
+                    .enter()
                     .append('option')
                     .attr('value', d => d)
                     .html(d => d);
-                d3.select('select#day-of-week').selectAll('option')
+                d3.select(`select#day-of-month option[value="${num}"]`).attr("selected", "");
+                /*d3.select('select#day-of-week').selectAll('option')
                     .data(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']).enter()
                     .append('option')
                     .attr('value', d => d)
-                    .html(d => d);
+                    .html(d => d);*/
+
+                d3.select('#filters .apply').on('click', function () {
+                    loadCsv(parseInt(document.getElementById('day-of-month').value))
+                })
 
             };
 
