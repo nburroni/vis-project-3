@@ -31,7 +31,7 @@
             let zoneCounties = {};
             zonesGeo.features.forEach(f => zoneCounties[f.properties.TAZ_ID] = f.properties.COUNTY.charAt(0) + f.properties.COUNTY.substring(1).toLowerCase());
 
-            var loadCsv = function (num, filters) {
+            var loadCsv = function (num, loadFilters, filters) {
                 loader.classed('hidden', false);
                 d3.csv(`./data/csv/${num}.csv`, function (err, data) {
                     if (err) {
@@ -68,65 +68,67 @@
                         }, d);
                     });
 
-                    let ranges = [];
-                    mapped.forEach(d => ranges[d.Time_Range.from] = Object.assign({str: `${d.Time_Range_Str.from} to ${d.Time_Range_Str.to}`}, d.Time_Range));
-                    while (!ranges[0]) ranges.shift();
-                    d3.select('#hour-range').selectAll('option').remove()
-                        .data(ranges).enter()
-                        .append('option')
-                        .attr('value', d => d.from)
-                        .html(d => d.str);
-                    $('#hour-range').multiselect({
-                        nonSelectedText: 'All Hour Ranges',
-                        allSelectedText: 'All Hour Ranges',
-                        numberDisplayed: 1,
-                        nSelectedText: ' Hour Ranges'
-                    });
+                    if (loadFilters) {
+                        let ranges = [];
+                        mapped.forEach(d => ranges[d.Time_Range.from] = Object.assign({str: `${d.Time_Range_Str.from} to ${d.Time_Range_Str.to}`}, d.Time_Range));
+                        while (!ranges[0]) ranges.shift();
+                        d3.select('#hour-range').selectAll('option').remove()
+                            .data(ranges).enter()
+                            .append('option')
+                            .attr('value', d => d.from)
+                            .html(d => d.str);
+                        $('#hour-range').multiselect({
+                            nonSelectedText: 'All Hour Ranges',
+                            allSelectedText: 'All Hour Ranges',
+                            numberDisplayed: 1,
+                            nSelectedText: ' Hour Ranges'
+                        });
 
-                    let subscribers = {};
-                    mapped.forEach(d => subscribers[d.Subscriber_Class] = d.Subscriber_Class);
-                    d3.select('#subscriber').selectAll('option').remove()
-                        .data(Object.keys(subscribers)).enter()
-                        .append('option')
-                        .attr('value', d => d)
-                        .html(d => d);
-                    $('#subscriber').multiselect({
-                        nonSelectedText: 'All Subscribers',
-                        allSelectedText: 'All Subscribers',
-                        numberDisplayed: 1,
-                        nSelectedText: ' Subscribers'
-                    });
+                        let subscribers = {};
+                        mapped.forEach(d => subscribers[d.Subscriber_Class] = d.Subscriber_Class);
+                        d3.select('#subscriber').selectAll('option').remove()
+                            .data(Object.keys(subscribers)).enter()
+                            .append('option')
+                            .attr('value', d => d)
+                            .html(d => d);
+                        $('#subscriber').multiselect({
+                            nonSelectedText: 'All Subscribers',
+                            allSelectedText: 'All Subscribers',
+                            numberDisplayed: 1,
+                            nSelectedText: ' Subscribers'
+                        });
 
-                    let purposes = {};
-                    mapped.forEach(d => purposes[d.Purpose] = d.Purpose);
-                    d3.select('#purpose').selectAll('option').remove()
-                        .data(Object.keys(purposes)).enter()
-                        .append('option')
-                        .attr('value', d => d)
-                        .html(d => purposeKeys[d]);
-                    $('#purpose').multiselect({
-                        nonSelectedText: 'All Purposes',
-                        allSelectedText: 'All Purposes',
-                        numberDisplayed: 1,
-                        nSelectedText: ' Purposes'
-                    });
+                        let purposes = {};
+                        mapped.forEach(d => purposes[d.Purpose] = d.Purpose);
+                        d3.select('#purpose').selectAll('option').remove()
+                            .data(Object.keys(purposes)).enter()
+                            .append('option')
+                            .attr('value', d => d)
+                            .html(d => purposeKeys[d]);
+                        $('#purpose').multiselect({
+                            nonSelectedText: 'All Purposes',
+                            allSelectedText: 'All Purposes',
+                            numberDisplayed: 1,
+                            nSelectedText: ' Purposes'
+                        });
 
-                    let counties = {};
-                    mapped.forEach(d => {
-                        counties[d.Origin_County] = d.Origin_County;
-                        counties[d.Destination_County] = d.Destination_County;
-                    });
-                    d3.select('#county').selectAll('option').remove()
-                        .data(Object.keys(counties)).enter()
-                        .append('option')
-                        .attr('value', d => d)
-                        .html(d => d);
-                    $('#county').multiselect({
-                        nonSelectedText: 'All Counties',
-                        allSelectedText: 'All Counties',
-                        numberDisplayed: 1,
-                        nSelectedText: ' Counties'
-                    });
+                        let counties = {};
+                        mapped.forEach(d => {
+                            counties[d.Origin_County] = d.Origin_County;
+                            counties[d.Destination_County] = d.Destination_County;
+                        });
+                        d3.select('#county').selectAll('option').remove()
+                            .data(Object.keys(counties)).enter()
+                            .append('option')
+                            .attr('value', d => d)
+                            .html(d => d);
+                        $('#county').multiselect({
+                            nonSelectedText: 'All Counties',
+                            allSelectedText: 'All Counties',
+                            numberDisplayed: 1,
+                            nSelectedText: ' Counties'
+                        });
+                    }
 
                     let filtered = mapped;
                     if (filters) {
@@ -163,7 +165,7 @@
                         return $(`#${id} option:selected`).toArray().map(o => o.value);
                     };
 
-                    loadCsv(parseInt(document.getElementById('day-of-month').value), {
+                    loadCsv(parseInt(document.getElementById('day-of-month').value), false, {
                         hours: getValues('hour-range').map(h => parseInt(h)),
                         subscribers: getValues('subscriber'),
                         purposes: getValues('purpose'),
@@ -173,7 +175,7 @@
 
             };
 
-            loadCsv(1);
+            loadCsv(1, true);
         });
     });
 
