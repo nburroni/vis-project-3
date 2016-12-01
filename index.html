@@ -6,29 +6,39 @@
 
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<link rel="stylesheet" type="text/css" href="css/bootstrap-multiselect.css">
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
 <body>
 
-    <div id="filters">
+    <div id="filters" class="form-inline">
         <div class="filter day-of-month">
-            <span>Day of Month</span>
+            <!--<span>Day of Month</span>-->
+            <select id="day-of-month" class="form-control"></select>
         </div>
         <div class="filter day-of-week">
-            <span>Day of Week</span>
+            <!--<span>Day of Week</span>-->
+            <select id="day-of-week" class="form-control"></select>
         </div>
         <div class="filter hour-range">
-            <span>Hours</span>
+            <!--<span>Hours</span>-->
+            <select id="hour-range" multiple="multiple"></select>
         </div>
         <div class="filter subscriber">
-            <span>Subscriber</span>
+            <!--<span>Subscriber</span>-->
+            <select id="subscriber" multiple="multiple"></select>
         </div>
         <div class="filter purpose">
-            <span>Purpose</span>
+            <!--<span>Purpose</span>-->
+            <select id="purpose" multiple="multiple"></select>
         </div>
         <div class="filter county">
-            <span>County</span>
+            <!--<span>County</span>-->
+            <select id="county" multiple="multiple"></select>
         </div>
+    </div>
+    <div class="dark-mode-toggle">
+        <input id="dark-mode" type="checkbox" data-toggle="toggle" data-on="Night Mode" data-off="Day Mode">
     </div>
     <div id="map"></div>
 
@@ -40,8 +50,8 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDzf8KmxU-2kd1SM8UVuMPot58toYj8as&callback=initMap" async defer></script>
 <script src = "js/bootstrap-multiselect.js"></script>
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <script src = "js/centers.js"></script>
-
 <script src = "js/main.js"></script>
 <script src = "js/data-map.js"></script>
 
