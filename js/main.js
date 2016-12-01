@@ -770,7 +770,16 @@ function initMap() {
 
                     google.maps.event.addListener(drawZone, 'click', function (event) {
 
-                        if (clickedZone) {
+                        if (clickedZone && clickedZone == value.properties){
+                            for (var i = 0; i < drawZones.length; i++) {
+                                drawZones[i].setOptions({fillColor: "green", strokeWeight: 1.5, fillOpacity: 0.2});
+                            }
+                            directionsDisplays.forEach((d) => {
+                                d.setDirections({routes: []});
+                            });
+                            clickedZone = undefined;
+                        }
+                        else if (clickedZone) {
                             directionsDisplays.forEach((d) => {
                                 d.setDirections({routes: []});
                             });
