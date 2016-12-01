@@ -77,7 +77,8 @@
                         .attr('value', d => d.from)
                         .html(d => d.str);
                     $('#hour-range').multiselect({
-                        nonSelectedText: 'Hour Ranges',
+                        nonSelectedText: 'All Hour Ranges',
+                        allSelectedText: 'All Hour Ranges',
                         numberDisplayed: 1,
                         nSelectedText: ' Hour Ranges'
                     });
@@ -90,7 +91,8 @@
                         .attr('value', d => d)
                         .html(d => d);
                     $('#subscriber').multiselect({
-                        nonSelectedText: 'Subscribers',
+                        nonSelectedText: 'All Subscribers',
+                        allSelectedText: 'All Subscribers',
                         numberDisplayed: 1,
                         nSelectedText: ' Subscribers'
                     });
@@ -103,7 +105,8 @@
                         .attr('value', d => d)
                         .html(d => purposeKeys[d]);
                     $('#purpose').multiselect({
-                        nonSelectedText: 'Purposes',
+                        nonSelectedText: 'All Purposes',
+                        allSelectedText: 'All Purposes',
                         numberDisplayed: 1,
                         nSelectedText: ' Purposes'
                     });
@@ -119,14 +122,27 @@
                         .attr('value', d => d)
                         .html(d => d);
                     $('#county').multiselect({
-                        nonSelectedText: 'Counties',
+                        nonSelectedText: 'All Counties',
+                        allSelectedText: 'All Counties',
                         numberDisplayed: 1,
                         nSelectedText: ' Counties'
                     });
 
+                    let filtered = mapped;
+                    if (filters) {
+                        if (filters.hours.length > 0)
+                            filtered = filtered.filter(d => filters.hours.includes(d.Time_Range.from));
+                        if (filters.subscribers.length > 0)
+                            filtered = filtered.filter(d => filters.subscribers.includes(d.Subscriber_Class));
+                        if (filters.purposes.length > 0)
+                            filtered = filtered.filter(d => filters.purposes.includes(d.Purpose));
+                        if (filters.counties.length > 0)
+                            filtered = filtered.filter(d => filters.counties.includes(d.Origin_County) || filters.counties.includes(d.Destination_County));
+                    }
+
                     if (window.onDataReady) window.onDataReady({
                         day: num,
-                        data: mapped,
+                        data: filtered,
                         direction: 'dest',
                         topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
                     }, zones);
@@ -141,14 +157,18 @@
                     .attr('value', d => d)
                     .html(d => d);
                 d3.select(`select#day-of-month option[value="${num}"]`).attr("selected", "");
-                /*d3.select('select#day-of-week').selectAll('option')
-                    .data(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']).enter()
-                    .append('option')
-                    .attr('value', d => d)
-                    .html(d => d);*/
 
                 d3.select('#filters .apply').on('click', function () {
-                    loadCsv(parseInt(document.getElementById('day-of-month').value))
+                    var getValues = function (id) {
+                        return $(`#${id} option:selected`).toArray().map(o => o.value);
+                    };
+
+                    loadCsv(parseInt(document.getElementById('day-of-month').value), {
+                        hours: getValues('hour-range').map(h => parseInt(h)),
+                        subscribers: getValues('subscriber'),
+                        purposes: getValues('purpose'),
+                        counties: getValues('county')
+                    })
                 })
 
             };
