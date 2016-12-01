@@ -44,7 +44,7 @@
                     }, d);
                 });
 
-                if (window.onDataReady) window.onDataReady({ day: num, data: mapped }, zones);
+                if (window.onDataReady) window.onDataReady({ day: num, data: mapped, direction: 'dest' }, zones);
 
             });
         };
