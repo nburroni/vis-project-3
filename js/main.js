@@ -770,7 +770,7 @@ function initMap() {
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
     directionsService = new google.maps.DirectionsService();
 
-    window.onDataReady = function(data, zones) {
+    window.onDataReady = function(data, zones, GEO_JSON) {
         for (var i = 0; i < drawZones.length; i++) {
             drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1, zIndex: 0});
             drawZones[i].setColorValue = 0;
@@ -781,7 +781,7 @@ function initMap() {
         /********************************************************************************************
          ** Read each JSON feature object.Get coordinate and convert it into object {lat: ,lng:}
          ********************************************************************************************/
-        d3.json("./data/json/zones-geo.json", function(err, GEO_JSON) {
+
             d3.json("./data/json/zone-centers.json", function(err, centers) {
                 // Check if the coordinates array is separated in multiple arrays
                 GEO_JSON.features.forEach(function(polygon) {
@@ -1093,7 +1093,6 @@ function initMap() {
                     drawZones.push(drawZone);
                 });
             });
-        });
     }
 }
 
