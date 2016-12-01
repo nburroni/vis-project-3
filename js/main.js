@@ -1,6 +1,8 @@
 var map;
 var directionsService;
-var directionsDisplay;
+var directionsDisplays = [];
+var routes = [];
+var clickedZone;
 var startTime;
 var purpose;
 var date;
@@ -80,7 +82,7 @@ function initMap() {
                     drawZone.setColorValue = 0;
 
                     google.maps.event.addListener(drawZone, 'click', function(event) {
-
+                        clickedZone = value.properties;
                         console.log("The zone clicked on is: " + value.properties.OBJECTID_1);
                         //console.log(value.properties);
                         //console.log(data.data[0].Destination_Zone);
@@ -95,7 +97,7 @@ function initMap() {
                         //document.getElementById('legend'));
 
                         // Create the legend and display on the map
-                        if( map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1){
+                        if(map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1){
                             map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
                         }
                         else{
@@ -105,8 +107,14 @@ function initMap() {
                         }
 
 
-
-                        for(var i=0; i<data.data.length; i++){
+                        var routeCount = 0;
+                        //Clear previous paths
+                        directionsDisplays.forEach((d) => {
+                            d.setDirections({routes: []});
+                        });
+                        directionsDisplays = [];
+                        var zoneRoutes = [];
+                        for(var i = 0; i < data.data.length; i++){
                             //console.log(data.data[i].Origin_Zone);
                             if( data.data[i].Destination_Zone == value.properties.OBJECTID_1){
                                 //console.log(data.data[i].Destination_Zone);
@@ -116,7 +124,6 @@ function initMap() {
 
 
                                 if ( data.data[i].Origin_Zone - 1 < 1267 ){
-
 
                                     drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
                                     //console.log(data.data[i].Count);
@@ -129,22 +136,43 @@ function initMap() {
                                     //drawZones[data.data[i].Origin_Zone - 1].setOptions({fillColor: "blue",strokeWeight: 2.0,fillOpacity: 0.4})
                                     //drawZones[data.data[i].Origin_Zone - 1].setFillColor("zoneColor,0,0)");
 
+                                    google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseover', function (event){
+                                        console.log ('Entered zone ' + this.zone);
+                                        directionsDisplays.forEach((d) => {
+                                            if (d.source != this.zone){
+                                                d.polylineOptions.strokeOpacity = 0.01;
+                                                d.setMap(map);
+                                            }
+                                        });
+                                    });
+                                    google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseout', function (event){
+                                        console.log ('Left zone ' + this.zone);
 
+                                        directionsDisplays.forEach((d) => {
+                                            if (d.source != this.zone){
+                                                d.polylineOptions.strokeOpacity = 0.3;
+                                                d.setMap(map);
+                                            }
+                                        });
+                                    });
+                                    //Draw the path between the two zones.
+                                    if (routeCount < 100){
+                                        zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
+                                        routeCount++;
+                                    }
                                 }
                             }
                         }
-
+                        calcRoute(zoneRoutes);
                         //Make selected darker
                         drawZone.setOptions({
                             fillColor: "green",
                             strokeWeight: 2.0,
-                            fillOpacity: 1.0
+                            fillOpacity: 0.4
                         });
 
                         //Get bound for polygon// calculate the bounds of the polygon
                         //var bounds = new google.maps.LatLngBounds();
-
-                        //For each of the related areas, draw the path
 
                     });
 
@@ -166,7 +194,6 @@ function initMap() {
                                                     fillOpacity: 0.4});
                         }
 
-
                         //console.log("The zone clicked on is: " + value.properties.OBJECTID_1);
                         //console.log("The Bounds are: " + drawZone.getBounds());
 
@@ -180,10 +207,6 @@ function initMap() {
                             console.log("The new zoom level is: " + map.getZoom());
                         }
                         map.setCenter(drawZone.getBounds().getCenter());
-
-
-
-
                     });
 
                     drawZones.push(drawZone);
@@ -223,34 +246,72 @@ function getLatlongMap(coordinatesArray) {
     return latLongMap;
 }
 
-function calcRoute(startPoint, endPoint) {
-    var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: {
-        strokeColor: "blue"
-    }});
-    directionsDisplay.setMap(map);
-
-    var start = new google.maps.LatLng(startPoint.lat, startPoint.lng);
-    var end = new google.maps.LatLng(endPoint.lat, endPoint.lng);
-
-    var bounds = new google.maps.LatLngBounds();
-    bounds.extend(start);
-    bounds.extend(end);
-    map.fitBounds(bounds);
-    var request = {
-        origin: start,
-        destination: end,
-        travelMode: google.maps.TravelMode.DRIVING
-    };
-    directionsService.route(request, function (response, status) {
-        if (status == google.maps.DirectionsStatus.OK) {
-            directionsDisplay.setDirections(response);
-            directionsDisplay.setMap(map);
-        } else {
-            if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
-                console.log ("limit reached");
-            } else {
-                alert("Directions Request from " + start.toUrlValue(6) + " to " + end.toUrlValue(6) + " failed: " + status);
+function calcRoute(zoneRoutes) {
+    if (zoneRoutes[0].dest != clickedZone.OBJECTID_1) return;
+    var route = routes[zoneRoutes[0].dest];
+    var requestPaths = true;
+    if (route){
+        route.sources.forEach((d) => {
+            if (d.sourceId == zoneRoutes[0].source){
+                var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: {
+                    strokeColor: "blue"
+                }, preserveViewport: true});
+                directionsDisplay.dest = zoneRoutes[0].dest;
+                directionsDisplay.source = zoneRoutes[0].source;
+                directionsDisplay.setMap(map);
+                directionsDisplay.setDirections(d.path);
+                directionsDisplays.push(directionsDisplay);
+                requestPaths = false;
             }
-        }
-    });
+        });
+    }
+    if (requestPaths){
+        if (!route) routes[zoneRoutes[0].dest] = {sources: []};
+        var startPoint = zoneRoutes[0].sourceCenter;
+        var endPoint = zoneRoutes[0].destCenter;
+        var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: {
+            strokeColor: "blue",
+            strokeOpacity: 0.3
+        }, preserveViewport: true, zIndex: 1000});
+        directionsDisplay.setMap(map);
+
+        var start = new google.maps.LatLng(startPoint.lat, startPoint.lng);
+        var end = new google.maps.LatLng(endPoint.lat, endPoint.lng);
+
+        var bounds = new google.maps.LatLngBounds();
+        bounds.extend(start);
+        bounds.extend(end);
+        var request = {
+            origin: start,
+            destination: end,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+        directionsService.route(request, function (response, status) {
+            if (status == google.maps.DirectionsStatus.OK) {
+                directionsDisplay.dest = zoneRoutes[0].dest;
+                directionsDisplay.source = zoneRoutes[0].source;
+                directionsDisplay.setDirections(response);
+                directionsDisplay.setMap(map);
+                directionsDisplays.push(directionsDisplay);
+                routes[zoneRoutes[0].dest].sources.push({sourceId: zoneRoutes[0].source, path: response});
+                if (zoneRoutes.length > 1) {
+                    zoneRoutes.splice(0,1);
+                    setTimeout(function () {calcRoute(zoneRoutes);}, 300);
+                }
+            } else {
+                if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
+                    console.log ("limit reached");
+                    setTimeout(function (){calcRoute(zoneRoutes);}, 300);
+
+                } else {
+                    alert("Directions Request from " + start.toUrlValue(6) + " to " + end.toUrlValue(6) + " failed: " + status);
+                }
+            }
+        });
+    }
+    else if (zoneRoutes.length > 1) {
+        zoneRoutes.splice(0, 1);
+        calcRoute(zoneRoutes);
+    }
+
 }
