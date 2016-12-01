@@ -837,6 +837,7 @@ function initMap() {
                                 });
                             }
                             else{
+                                subClickedZones = [];
                                 var selectable = false;
                                 data.data.forEach((d) => {
                                     if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
@@ -1011,6 +1012,9 @@ function initMap() {
                                     selectable = true;
                                 }
                             });
+                            if (selectable){
+                                calcRoute([{sourceCenter: centers[value.properties.OBJECTID_1 - 1].center, destCenter: centers[clickedZone.OBJECTID_1 - 1].center, source: value.properties.OBJECTID_1, dest: clickedZone.OBJECTID_1}]);
+                            }
                             if (selectable || this.zone == clickedZone.OBJECTID_1) {
                                 this.setOptions({
                                     strokeColor: "black",
@@ -1039,6 +1043,9 @@ function initMap() {
 
                             });
                         }
+                        directionsDisplays.forEach((d) => {
+                            if (!subClickedZones[0] || d.source != subClickedZones[0].OBJECTID_1) d.setDirections({routes: []});
+                        });
 
                     });
 
