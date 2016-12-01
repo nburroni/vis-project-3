@@ -141,7 +141,8 @@
                                 let upperCaseCounties = filters.counties.map(c => c.toUpperCase());
                                 filteredGJ.features = filteredGJ.features.filter(f =>
                                     upperCaseCounties.includes(f.properties.COUNTY)
-                                )
+                                );
+                                filteredCenters = filteredCenters.filter(c => filters.counties.includes(zoneCounties[c.TAZ_ID]));
                             }
                         }
 
