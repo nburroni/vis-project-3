@@ -9,7 +9,7 @@ var purpose;
 var date;
 var zoneColor = 0;
 startTime = 10;
-var color_range = d3.scaleLinear().domain([0, 800]).range(["rgba(253,212,158,.8)", "rgba(179,0,0,.8)"]);
+var color_range = d3.scaleLinear().domain([0, 500]).range(["rgba(253,212,158,.8)", "rgba(179,0,0,.8)"]);
 
 const darkMapJson = [
     {
@@ -982,13 +982,14 @@ function calcRoute(zoneRoutes) {
     if (zoneRoutes[0].dest != clickedZone.OBJECTID_1) return;
     var route = routes[zoneRoutes[0].dest];
     var requestPaths = true;
+    var stroke = {
+        strokeColor: "#8539ff",
+        strokeOpacity: 0.9
+    };
     if (route){
         route.sources.forEach((d) => {
             if (d.sourceId == zoneRoutes[0].source){
-                var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: {
-                    strokeColor: "blue",
-                    strokeOpacity: 0.5
-                }, preserveViewport: true});
+                var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: stroke, preserveViewport: true});
                 directionsDisplay.dest = zoneRoutes[0].dest;
                 directionsDisplay.source = zoneRoutes[0].source;
                 directionsDisplay.setMap(map);
@@ -1002,10 +1003,7 @@ function calcRoute(zoneRoutes) {
         if (!route) routes[zoneRoutes[0].dest] = {sources: []};
         var startPoint = zoneRoutes[0].sourceCenter;
         var endPoint = zoneRoutes[0].destCenter;
-        var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: {
-            strokeColor: "blue",
-            strokeOpacity: 0.5
-        }, preserveViewport: true, zIndex: 1000});
+        var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: stroke, preserveViewport: true, zIndex: 1000});
         directionsDisplay.setMap(map);
 
         var start = new google.maps.LatLng(startPoint.lat, startPoint.lng);
