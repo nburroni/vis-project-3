@@ -760,7 +760,7 @@ function initMap() {
                         strokeOpacity: 0.2,
                         strokeWeight: 1.5,
                         fillColor: "green",
-                        fillOpacity: 0.4
+                        fillOpacity: 0.2
                     });
                     drawZone.setMap(map);
 
