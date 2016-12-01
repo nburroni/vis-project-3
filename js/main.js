@@ -3,6 +3,7 @@ var directionsService;
 var directionsDisplays = [];
 var routes = [];
 var clickedZone;
+var subClickedZones = [];
 var startTime;
 var purpose;
 var date;
@@ -82,104 +83,124 @@ function initMap() {
                     drawZone.setColorValue = 0;
 
                     google.maps.event.addListener(drawZone, 'click', function (event) {
-                        
-                        clickedZone = value.properties;
-                        console.log("The zone clicked on is: " + value.properties.OBJECTID_1);
-                        //console.log(value.properties);
-                        //console.log(data.data[0].Destination_Zone);
-                        //console.log(drawZones.length);
-                        for (var i = 0; i < drawZones.length; i++) {
 
-                            drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1});
-                            drawZones[i].setColorValue = 0;
+                        if (clickedZone) {
+                            directionsDisplays.forEach((d) => {
+                                d.setDirections({routes: []});
+                            });
+                            var clicked = subClickedZones.find(function (d){return d == value.properties});
+                            if (clicked){
+                                subClickedZones.splice(subClickedZones.indexOf(clicked, 1));
+                            }
+                            else{
+                                subClickedZones.push (value.properties);
+                                calcRoute([{sourceCenter: centers[value.properties.OBJECTID_1 - 1].center, destCenter: centers[clickedZone.OBJECTID_1 - 1].center, source: value.properties.OBJECTID_1, dest: clickedZone.OBJECTID_1}])
+                            }
                         }
+                        else{
+                            clickedZone = value.properties;
+                            console.log("The zone clicked on is: " + value.properties.OBJECTID_1);
+                            //console.log(value.properties);
+                            //console.log(data.data[0].Destination_Zone);
+                            //console.log(drawZones.length);
+                            for (var i = 0; i < drawZones.length; i++) {
 
-                        //map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(
-                        //document.getElementById('legend'));
+                                drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1});
+                                drawZones[i].setColorValue = 0;
+                            }
 
-                        // Create the legend and display on the map
-                        if(map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1){
-                            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
-                        }
-                        else {
-                            console.log("test");
-                            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
-                            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
-                        }
+                            //map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(
+                            //document.getElementById('legend'));
 
-
-                        var routeCount = 0;
-                        //Clear previous paths
-                        directionsDisplays.forEach((d) => {
-                            d.setDirections({routes: []});
-                        });
-                        directionsDisplays = [];
-                        var zoneRoutes = [];
-                        for(var i = 0; i < data.data.length; i++){
-                            //console.log(data.data[i].Origin_Zone);
-                            if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
-                                //console.log(data.data[i].Destination_Zone);
-                                //zoneColor++;
-                                //console.log(value.properties.OBJECTID_1);
-                                //console.log(drawZones[data.data[i].Origin_Zone - 1]);
+                            // Create the legend and display on the map
+                            if(map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1){
+                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                            }
+                            else {
+                                console.log("test");
+                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
+                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                            }
 
 
-                                if (data.data[i].Origin_Zone - 1 < 1267) {
+                            var routeCount = 0;
+                            //Clear previous paths
+                            directionsDisplays.forEach((d) => {
+                                d.setDirections({routes: []});
+                            });
+                            directionsDisplays = [];
+                            var zoneRoutes = [];
+                            for(var i = 0; i < data.data.length; i++){
+                                //console.log(data.data[i].Origin_Zone);
+                                if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
+                                    //console.log(data.data[i].Destination_Zone);
+                                    //zoneColor++;
+                                    //console.log(value.properties.OBJECTID_1);
+                                    //console.log(drawZones[data.data[i].Origin_Zone - 1]);
 
 
-                                    drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
-                                    //console.log(data.data[i].Count);
-                                    //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                    zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
-                                    //console.log(zoneColor);
-                                    //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                    //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
-                                    drawZones[data.data[i].Origin_Zone - 1].setOptions({
-                                        fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
-                                        strokeWeight: 2.0,
-                                        fillOpacity: 1
-                                    })
-                                    //drawZones[data.data[i].Origin_Zone - 1].setOptions({fillColor: "blue",strokeWeight: 2.0,fillOpacity: 0.4})
-                                    //drawZones[data.data[i].Origin_Zone - 1].setFillColor("zoneColor,0,0)");
+                                    if (data.data[i].Origin_Zone - 1 < 1267) {
 
-                                    google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseover', function (event){
-                                        console.log ('Entered zone ' + this.zone);
-                                        directionsDisplays.forEach((d) => {
-                                            if (d.source != this.zone){
-                                                d.polylineOptions.strokeOpacity = 0.01;
-                                                d.setMap(map);
-                                            }
+
+                                        drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
+                                        //console.log(data.data[i].Count);
+                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                        zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
+                                        //console.log(zoneColor);
+                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                        //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
+                                        drawZones[data.data[i].Origin_Zone - 1].setOptions({
+                                            fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
+                                            strokeWeight: 2.0,
+                                            fillOpacity: 1
                                         });
-                                    });
-                                    google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseout', function (event){
-                                        console.log ('Left zone ' + this.zone);
-
-                                        directionsDisplays.forEach((d) => {
-                                            if (d.source != this.zone){
-                                                d.polylineOptions.strokeOpacity = 0.3;
-                                                d.setMap(map);
-                                            }
+                                        //drawZones[data.data[i].Origin_Zone - 1].setOptions({fillColor: "blue",strokeWeight: 2.0,fillOpacity: 0.4})
+                                        //drawZones[data.data[i].Origin_Zone - 1].setFillColor("zoneColor,0,0)");
+                                        google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseover', function (event){
+                                            // console.log ('Entered zone ' + this.zone);
+                                            // directionsDisplays.forEach((d) => {
+                                            //     if (d.source != this.zone){
+                                            //         var minOpacity = 0.0;
+                                            //         var opacity = 0.2;
+                                            //         function opacityTransition(opacity){
+                                            //             if (d.polylineOptions.strokeOpacity > minOpacity){
+                                            //                 d.polylineOptions.strokeOpacity = opacity;
+                                            //                 d.setMap(map);
+                                            //                 opacity = opacity - 0.1;
+                                            //                 setTimeout(function (){opacityTransition(opacity)}, 50);
+                                            //             }
+                                            //         }
+                                            //         setTimeout(function (){opacityTransition(opacity)}, 50);
+                                            //     }
+                                            //     else{
+                                            //         d.polylineOptions.strokeColor = "red";
+                                            //         d.polylineOptions.strokeOpacity = 0.7;
+                                            //         d.setMap(map);
+                                            //     }
+                                            // });
                                         });
-                                    });
-                                    //Draw the path between the two zones.
-                                    if (routeCount < 100){
-                                        zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
-                                        routeCount++;
+                                        google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseout', function (event){
+
+                                        });
+                                        //Draw the path between the two zones.
+                                        if (routeCount < 100){
+                                            zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
+                                            routeCount++;
+                                        }
                                     }
                                 }
                             }
+                            // calcRoute(zoneRoutes);
+                            //Make selected darker
+                            drawZone.setOptions({
+                                fillColor: "green",
+                                strokeWeight: 2.0,
+                                fillOpacity: 0.4
+                            });
+
+                            //Get bound for polygon// calculate the bounds of the polygon
+                            //var bounds = new google.maps.LatLngBounds();
                         }
-                        calcRoute(zoneRoutes);
-                        //Make selected darker
-                        drawZone.setOptions({
-                            fillColor: "green",
-                            strokeWeight: 2.0,
-                            fillOpacity: 0.4
-                        });
-
-                        //Get bound for polygon// calculate the bounds of the polygon
-                        //var bounds = new google.maps.LatLngBounds();
-
                     });
 
                     google.maps.event.addListener(drawZone, 'dblclick', function (event) {
@@ -261,7 +282,8 @@ function calcRoute(zoneRoutes) {
         route.sources.forEach((d) => {
             if (d.sourceId == zoneRoutes[0].source){
                 var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: {
-                    strokeColor: "blue"
+                    strokeColor: "blue",
+                    strokeOpacity: 0.5
                 }, preserveViewport: true});
                 directionsDisplay.dest = zoneRoutes[0].dest;
                 directionsDisplay.source = zoneRoutes[0].source;
@@ -278,7 +300,7 @@ function calcRoute(zoneRoutes) {
         var endPoint = zoneRoutes[0].destCenter;
         var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: {
             strokeColor: "blue",
-            strokeOpacity: 0.3
+            strokeOpacity: 0.5
         }, preserveViewport: true, zIndex: 1000});
         directionsDisplay.setMap(map);
 
