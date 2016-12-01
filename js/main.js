@@ -955,27 +955,44 @@ function initMap() {
 
                                         if (data.data[i].Origin_Zone - 1 < 1267) {
 
+                                            drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
+                                            //console.log(data.data[i].Count);
+                                            //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                            zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
+                                            //console.log(zoneColor);
+                                            //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                            //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
+                                            drawZones[data.data[i].Origin_Zone - 1].setOptions({
+                                                fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
+                                                strokeWeight: 2.0,
+                                                fillOpacity: 1
+                                            });
+                                            google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseover', function(event) {
 
-                                        drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
-                                        //console.log(data.data[i].Count);
-                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                        zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
-                                        //console.log(zoneColor);
-                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                        //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
-                                        drawZones[data.data[i].Origin_Zone - 1].setOptions({
-                                            fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
-                                            strokeWeight: 2.0,
-                                            fillOpacity: 1
-                                        });
-                                        google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseout', function (event){
+                                                moused = true;
+                                                this.setOptions({
+                                                    strokeColor: "black",
+                                                    strokeOpacity: 1,
+                                                    strokeWeight: 1.5
+                                                });
+                                            });
 
-                                        });
-                                        //Draw the path between the two zones.
-                                        if (routeCount < 100){
-                                            zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
-                                            routeCount++;
-                                        }
+                                            google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseout', function(event) {
+
+                                                if (moused == true) {
+                                                    moused = false;
+                                                    this.setOptions({
+                                                        strokeOpacity: 0.2
+
+                                                    });
+                                                }
+                                            });
+
+                                            //Draw the path between the two zones.
+                                            if (routeCount < 100){
+                                                zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
+                                                routeCount++;
+                                            }
                                     }
                                 }
                             }
@@ -990,36 +1007,6 @@ function initMap() {
                             //Get bound for polygon// calculate the bounds of the polygon
                             //var bounds = new google.maps.LatLngBounds();
                         }
-                    });
-
-
-                    google.maps.event.addListener(drawZone, 'mouseover', function(event) {
-
-                        if (drawZone.strokeWeight == 0) {
-                            moused = true;
-                            drawZone.setOptions({
-                                strokeColor: "black",
-                                strokeOpacity: 0.2,
-                                strokeWeight: 1.5,
-                                fillColor: "green",
-                                fillOpacity: 0.4
-                            });
-                        }
-
-                    });
-
-                    google.maps.event.addListener(drawZone, 'mouseout', function(event) {
-
-                        if (moused == true) {
-                            moused = false;
-                            drawZone.setOptions({
-                                fillColor: "rgba(0,0,0,.0)",
-                                strokeWeight: 0,
-                                fillOpacity: 1
-
-                            });
-                        }
-
                     });
 
                     google.maps.event.addListener(drawZone, 'dblclick', function(event) {
