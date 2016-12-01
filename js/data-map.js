@@ -15,25 +15,25 @@
     /**
      *
      */
-    d3.json("./data/json/zones-geo.json", function (err, GEO_JSON) {
-        d3.json("./data/json/zone-centers.json", function (err, zones) {
-            const loader = d3.select('#loader');
+    d3.json("./data/json/zone-centers.json", function (err, zones) {
+        const loader = d3.select('#loader');
+        if (err) {
+            console.log("Error on zone-centers.json load.");
+            console.log(err);
+            return;
+        }
+        d3.json("./data/json/zones-geo.json", function (err, zonesGeo) {
             if (err) {
-                console.log("Error on zone-centers.json load.");
+                console.log("Error on zone-geo.json load.");
                 console.log(err);
                 return;
             }
-            d3.json("./data/json/zones-geo.json", function (err, zonesGeo) {
-                if (err) {
-                    console.log("Error on zone-geo.json load.");
-                    console.log(err);
-                    return;
-                }
-                let zoneCounties = {};
-                zonesGeo.features.forEach(f => zoneCounties[f.properties.TAZ_ID] = f.properties.COUNTY.charAt(0) + f.properties.COUNTY.substring(1).toLowerCase());
+            let zoneCounties = {};
+            zonesGeo.features.forEach(f => zoneCounties[f.properties.TAZ_ID] = f.properties.COUNTY.charAt(0) + f.properties.COUNTY.substring(1).toLowerCase());
 
-                var loadCsv = function (num, loadFilters, filters) {
-                    loader.classed('hidden', false);
+            var loadCsv = function (num, loadFilters, filters) {
+                loader.classed('hidden', false);
+                d3.json("./data/json/zones-geo.json", function (err, GEO_JSON) {
                     d3.csv(`./data/csv/${num}.csv`, function (err, data) {
                         if (err) {
                             console.log(`Error on ${num}.csv load.`);
@@ -132,6 +132,7 @@
                         }
 
                         let filtered = mapped;
+                        let filteredGJ = GEO_JSON;
                         if (filters) {
                             if (filters.hours.length > 0)
                                 filtered = filtered.filter(d => filters.hours.includes(d.Time_Range.from));
@@ -139,8 +140,13 @@
                                 filtered = filtered.filter(d => filters.subscribers.includes(d.Subscriber_Class));
                             if (filters.purposes.length > 0)
                                 filtered = filtered.filter(d => filters.purposes.includes(d.Purpose));
-                            if (filters.counties.length > 0)
+                            if (filters.counties.length > 0) {
                                 filtered = filtered.filter(d => filters.counties.includes(d.Origin_County) || filters.counties.includes(d.Destination_County));
+                                let upperCaseCounties = filters.counties.map(c => c.toUpperCase());
+                                filteredGJ.features = filteredGJ.features.filter(f =>
+                                    upperCaseCounties.includes(f.properties.COUNTY)
+                                )
+                            }
                         }
 
                         if (window.onDataReady) window.onDataReady({
@@ -148,7 +154,7 @@
                             data: filtered,
                             direction: 'dest',
                             topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
-                        }, zones, GEO_JSON);
+                        }, zones, filteredGJ);
                         loader.classed('hidden', true);
 
                     });
@@ -174,10 +180,10 @@
                         })
                     })
 
-                };
+                });
+            };
 
-                loadCsv(1, true);
-            });
+            loadCsv(1, true);
         });
     });
 
