@@ -784,6 +784,9 @@ function initMap() {
                             var clicked = subClickedZones.find(function (d){return d == value.properties});
                             if (clicked){
                                 subClickedZones.splice(subClickedZones.indexOf(clicked, 1));
+                                directionsDisplays.forEach((d) => {
+                                    d.setDirections({routes: []});
+                                });
                             }
                             else{
                                 var selectable = false;
