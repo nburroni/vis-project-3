@@ -44,7 +44,12 @@
                     }, d);
                 });
 
-                if (window.onDataReady) window.onDataReady({ day: num, data: mapped, direction: 'dest' }, zones);
+                if (window.onDataReady) window.onDataReady({
+                        day: num,
+                        data: mapped,
+                        direction: 'dest',
+                        topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
+                    } , zones);
 
             });
         };
