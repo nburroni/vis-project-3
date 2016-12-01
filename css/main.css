@@ -23,7 +23,37 @@ html, body {
         vertical-align: middle;
       }
 	  
-	  .color {
+#legend2 {
+        font-family: Arial, sans-serif;
+        background: #fff;
+        padding: 10px;
+        margin: 10px;
+        border: 3px solid #000;
+}
+#legend2 h3 {
+        margin-top: 0;
+}
+      
+#legend2 img {
+        vertical-align: middle;
+      }
+	  
+#legend3 {
+        font-family: Arial, sans-serif;
+        background: #fff;
+        padding: 10px;
+        margin: 10px;
+        border: 3px solid #000;
+}
+#legend3 h3 {
+        margin-top: 0;
+}
+      
+#legend3 img {
+        vertical-align: middle;
+      }
+	  
+.color {
         border: 1px solid;
         height: 12px;
         width: 12px;
@@ -31,22 +61,54 @@ html, body {
         float: left;
       }
 
-      .red {
-        background: #C00;
+.color1 {
+        background: #fdbb84;
       }
 
-      .yellow {
-        background: #FF3;
+.color2 {
+        background: #fc8d59;
       }
 
-      .green {
-        background: #6F0;
+.color3 {
+        background: #ef6548;
       }
 
-      .blue {
-        background: #06C;
+.color4 {
+        background: #d7301f;
       }
 
-      .purple {
-        background: #63C;
-      }      	  
+.color5 {
+        background: #b30000;
+      }      
+
+.color6 {
+        background: #7f0000;
+      } 
+
+.color7 {
+        background: #fa9fb5;
+      } 
+
+.color8 {
+        background: #f768a1;
+      } 
+
+.color9 {
+        background: #dd3497;
+      } 
+	  
+.color10 {
+        background: #ae017e;
+      } 
+
+.color11 {
+        background: #7a0177;
+      } 
+
+.color12 {
+        background: #49006a;
+      } 	
+
+.color13 {
+        background: black;
+} 	  	    
