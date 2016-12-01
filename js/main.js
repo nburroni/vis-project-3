@@ -701,7 +701,6 @@ var moused = false;
 var destination = false;
 
 function initMap() {
-    let styledMapType = new google.maps.StyledMapType(silverMapJson);
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
             lat: 28.3317,
@@ -711,7 +710,7 @@ function initMap() {
         mapTypeControl: false,
         streetViewControl: false
     });
-    map.mapTypes.set('styled_map', styledMapType);
+    map.mapTypes.set('styled_map', new google.maps.StyledMapType(silverMapJson));
     map.setMapTypeId('styled_map');
     if (!google.maps.Polygon.prototype.getBounds) {
         google.maps.Polygon.prototype.getBounds = function () {
@@ -722,6 +721,11 @@ function initMap() {
             return bounds
         }
     }
+
+    $('input#dark-mode').change(function() {
+        if (this.checked) map.mapTypes.set('styled_map', new google.maps.StyledMapType(darkMapJson));
+        else map.mapTypes.set('styled_map', new google.maps.StyledMapType(silverMapJson));
+    });
 
     var infowindow = new google.maps.InfoWindow();
     var legend = document.createElement('div');

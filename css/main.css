@@ -122,10 +122,10 @@ html, body {
     position: fixed;
     top: 2%;
     left: 2.5%;
+    z-index: 1000;
     width: 95%;
     background: #f7f7f7;
     height: 56px;
-    z-index: 1000;
     border: solid #a2a2a2 1pt;
     border-radius: 7px;
     padding: 0 10px;
@@ -135,5 +135,17 @@ html, body {
     position: relative;
     top: 50%;
     transform: translateY(-50%);
+}
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 3%;
+    left: 1%;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 5px;
+    padding: 5px;
+}
+.toggle-group .btn-primary {
+    background-color: #123a5d;
 }
 /* END FILTERS */
