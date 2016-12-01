@@ -761,7 +761,8 @@ function initMap() {
                         strokeOpacity: 0.2,
                         strokeWeight: 1.5,
                         fillColor: "green",
-                        fillOpacity: 0.2
+                        fillOpacity: 0.2,
+                        zIndex: 0
                     });
                     drawZone.setMap(map);
 
@@ -780,7 +781,6 @@ function initMap() {
                             clickedZone = undefined;
                         }
                         else if (clickedZone) {
-
                             var clicked = subClickedZones.find(function (d){return d == value.properties});
                             if (clicked){
                                 subClickedZones.splice(subClickedZones.indexOf(clicked, 1));
@@ -802,7 +802,6 @@ function initMap() {
                                     subClickedZones.push (value.properties);
                                     calcRoute([{sourceCenter: centers[value.properties.OBJECTID_1 - 1].center, destCenter: centers[clickedZone.OBJECTID_1 - 1].center, source: value.properties.OBJECTID_1, dest: clickedZone.OBJECTID_1}])
                                 }
-
                             }
                         }
                         else{
@@ -812,7 +811,7 @@ function initMap() {
                             //console.log(data.data[0].Destination_Zone);
                             //console.log(drawZones.length);
                             for (var i = 0; i < drawZones.length; i++) {
-                                drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1});
+                                drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1, zIndex: 0});
                                 drawZones[i].setColorValue = 0;
                             }
 
@@ -987,7 +986,8 @@ function calcRoute(zoneRoutes) {
     var requestPaths = true;
     var stroke = {
         strokeColor: "#8539ff",
-        strokeOpacity: 0.9
+        strokeOpacity: 0.9,
+        zIndex: 10
     };
     if (route){
         route.sources.forEach((d) => {
