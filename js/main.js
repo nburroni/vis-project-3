@@ -953,60 +953,82 @@ function initMap() {
                                     //console.log(drawZones[data.data[i].Origin_Zone - 1]);
 
 
-                                        if (data.data[i].Origin_Zone - 1 < 1267) {
+                                    if (data.data[i].Origin_Zone - 1 < 1267) {
 
-                                            drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
-                                            //console.log(data.data[i].Count);
-                                            //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                            zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
-                                            //console.log(zoneColor);
-                                            //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                            //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
-                                            drawZones[data.data[i].Origin_Zone - 1].setOptions({
-                                                fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
-                                                strokeWeight: 2.0,
-                                                fillOpacity: 1
-                                            });
-                                            google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseover', function(event) {
+                                        drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
+                                        //console.log(data.data[i].Count);
+                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                        zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
+                                        //console.log(zoneColor);
+                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                        //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
+                                        drawZones[data.data[i].Origin_Zone - 1].setOptions({
+                                            fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
+                                            strokeWeight: 2.0,
+                                            fillOpacity: 1
+                                        });
 
-                                                moused = true;
-                                                this.setOptions({
-                                                    strokeColor: "black",
-                                                    strokeOpacity: 1,
-                                                    strokeWeight: 1.5
-                                                });
-                                            });
 
-                                            google.maps.event.addListener(drawZones[data.data[i].Origin_Zone - 1], 'mouseout', function(event) {
-
-                                                if (moused == true) {
-                                                    moused = false;
-                                                    this.setOptions({
-                                                        strokeOpacity: 0.2
-
-                                                    });
-                                                }
-                                            });
-
-                                            //Draw the path between the two zones.
-                                            if (routeCount < 100){
-                                                zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
-                                                routeCount++;
-                                            }
+                                        //Draw the path between the two zones.
+                                        if (routeCount < 100){
+                                            zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
+                                            routeCount++;
+                                        }
                                     }
                                 }
                             }
                             // calcRoute(zoneRoutes);
                             //Make selected darker
+
+
+                            //Get bound for polygon// calculate the bounds of the polygon
+                            //var bounds = new google.maps.LatLngBounds();
                             drawZone.setOptions({
                                 fillColor: "green",
                                 strokeWeight: 2.0,
                                 fillOpacity: 0.4
                             });
-
-                            //Get bound for polygon// calculate the bounds of the polygon
-                            //var bounds = new google.maps.LatLngBounds();
                         }
+                    });
+                    google.maps.event.addListener(drawZone, 'mouseover', function(event) {
+
+                        moused = true;
+                        if (clickedZone){
+                            var selectable = false;
+                            data.data.forEach((d) => {
+                                if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
+                                    selectable = true;
+                                }
+                            });
+                            if (selectable || this.zone == clickedZone.OBJECTID_1) {
+                                this.setOptions({
+                                    strokeColor: "black",
+                                    strokeOpacity: 1,
+                                    strokeWeight: 1.5
+                                });
+                            }
+                        }
+                        else{
+                            this.setOptions({
+                                strokeColor: "black",
+                                strokeOpacity: 1,
+                                strokeWeight: 1.5
+                            });
+                        }
+                        
+
+                    });
+
+                    google.maps.event.addListener(drawZone, 'mouseout', function(event) {
+
+                        if (moused == true) {
+                            moused = false;
+                            this.setOptions({
+                                strokeOpacity: 0.2
+
+                            });
+                        }
+
                     });
 
                     google.maps.event.addListener(drawZone, 'dblclick', function(event) {
@@ -1052,20 +1074,6 @@ function initMap() {
 
                     drawZones.push(drawZone);
                 });
-
-                // Draw red circles in center of each polygon
-                /*centers.forEach(function(d) {
-                    var cityCircle = new google.maps.Circle({
-                        strokeColor: '#FF0000',
-                        strokeOpacity: 0.8,
-                        strokeWeight: 2,
-                        fillColor: '#FF0000',
-                        fillOpacity: 0.70,
-                        center: new google.maps.LatLng(d.center.lat, d.center.lng),
-                        radius: 200
-                    });
-                    cityCircle.setMap(map);
-                });*/
             });
         });
     }
