@@ -725,7 +725,7 @@ function initMap() {
         }
     }
 
-    $('input#dark-mode').change(function() {
+    $('input#dark-mode').change(function () {
         if (this.checked) map.mapTypes.set('styled_map', new google.maps.StyledMapType(darkMapJson));
         else map.mapTypes.set('styled_map', new google.maps.StyledMapType(silverMapJson));
     });
@@ -757,352 +757,372 @@ function initMap() {
     legend2.innerHTML = content2.join('');
     legend2.index = 1;
 
-    
 
-    window.onDataReady = function(data, zones, GEO_JSON) {
-	    topCongestedList = data.topCongested;
-		console.log(topCongestedList);
-		
-		var legend3 = document.createElement('div');
-    legend3.id = 'legend3';
+    window.onDataReady = function (data, centers, GEO_JSON) {
+        clickedZone = undefined;
+        topCongestedList = data.topCongested;
+        console.log(topCongestedList);
 
-    var content3 = [];
-    content3.push('<h4>Top Ten Congested Areas</h4>');
+        var legend3 = document.createElement('div');
+        legend3.id = 'legend3';
 
-    legend3.innerHTML = content3.join('');
-    legend3.index = 1;
+        var content3 = [];
+        content3.push('<h4>Top Ten Congested Areas</h4>');
 
-    var centerControl = new CenterControl(legend3, map);
+        legend3.innerHTML = content3.join('');
+        legend3.index = 1;
 
-    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
-    directionsService = new google.maps.DirectionsService();
-	
+        var centerControl = new CenterControl(legend3, map);
+
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
+        directionsService = new google.maps.DirectionsService();
+
         for (var i = 0; i < drawZones.length; i++) {
             drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1, zIndex: 0});
             drawZones[i].setColorValue = 0;
+            drawZones[i].setMap(null);
         }
         directionsDisplays.forEach((d) => {
             d.setDirections({routes: []});
         });
+        drawZones = [];
         /********************************************************************************************
          ** Read each JSON feature object.Get coordinate and convert it into object {lat: ,lng:}
          ********************************************************************************************/
 
-            d3.json("./data/json/zone-centers.json", function(err, centers) {
-                // Check if the coordinates array is separated in multiple arrays
-                GEO_JSON.features.forEach(function(polygon) {
-                    var coordinates = polygon.geometry.coordinates;
-                    // If more than one array is present, concat all the children into one array
-                    if (coordinates.length != 1) {
-                        polygon.geometry.coordinates = [].concat.apply([], coordinates);
-                    }
-                });
-                GEO_JSON.features.forEach(function(value, key) {
-                    //convert given coordinates array into
-                    var latlog = getLatlongMap(value.geometry.coordinates[0]);
-                    //console.log(value);
+        // Check if the coordinates array is separated in multiple arrays
+        GEO_JSON.features.forEach(function (polygon) {
+            var coordinates = polygon.geometry.coordinates;
+            // If more than one array is present, concat all the children into one array
+            if (coordinates.length != 1) {
+                polygon.geometry.coordinates = [].concat.apply([], coordinates);
+            }
+        });
+        GEO_JSON.features.forEach(function (value, key) {
+            //convert given coordinates array into
+            var latlog = getLatlongMap(value.geometry.coordinates[0]);
+            //console.log(value);
 
-                    var drawZone = new google.maps.Polygon({
-                        paths: latlog,
+            var drawZone = new google.maps.Polygon({
+                paths: latlog,
+                strokeColor: "black",
+                strokeOpacity: 0.2,
+                strokeWeight: 1.5,
+                fillColor: "green",
+                fillOpacity: 0.4
+            });
+            drawZone.setMap(map);
+
+            drawZone.zone = value.properties.OBJECTID_1;
+            drawZone.setColorValue = 0;
+
+            // Create the legend and display on the map
+            if (map.controls[google.maps.ControlPosition.RIGHT_TOP].length < 1) {
+                map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend3);
+            } else {
+                map.controls[google.maps.ControlPosition.RIGHT_TOP].pop(legend3);
+                map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend3);
+            }
+
+            google.maps.event.addListener(drawZone, 'click', function (event) {
+
+                if (clickedZone && clickedZone == value.properties) {
+                    for (var i = 0; i < drawZones.length; i++) {
+                        drawZones[i].setOptions({fillColor: "green", strokeWeight: 1.5, fillOpacity: 0.2});
+                    }
+                    directionsDisplays.forEach((d) => {
+                        d.setDirections({routes: []});
+                    });
+                    clickedZone = undefined;
+                }
+                else if (clickedZone) {
+                    var clicked = subClickedZones.find(function (d) {
+                        return d == value.properties
+                    });
+                    if (clicked) {
+                        subClickedZones.splice(subClickedZones.indexOf(clicked, 1));
+                        directionsDisplays.forEach((d) => {
+                            d.setDirections({routes: []});
+                        });
+                    }
+                    else {
+                        subClickedZones = [];
+                        var selectable = false;
+                        data.data.forEach((d) => {
+                            if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
+                                selectable = true;
+                            }
+                        });
+                        if (selectable) {
+                            directionsDisplays.forEach((d) => {
+                                d.setDirections({routes: []});
+                            });
+                            subClickedZones.push(value.properties);
+                            calcRoute([{
+                                sourceCenter: centers[value.properties.OBJECTID_1 - 1].center,
+                                destCenter: centers[clickedZone.OBJECTID_1 - 1].center,
+                                source: value.properties.OBJECTID_1,
+                                dest: clickedZone.OBJECTID_1
+                            }])
+                        }
+                    }
+                }
+                else {
+                    // if (destination) {
+                    //     for (var i = 0; i < data.data.length; i++) {
+                    //
+                    //         if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
+                    //
+                    //             if (data.data[i].Origin_Zone - 1 < 1267) {
+                    //
+                    //                 drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
+                    //                 zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
+                    //                 drawZones[data.data[i].Origin_Zone - 1].setOptions({
+                    //                     fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
+                    //                     strokeWeight: 2.0,
+                    //                     fillOpacity: 1
+                    //                 })
+                    //             }
+                    //         }
+                    //     }
+                    //     // Create the legend and display on the map
+                    //     if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                    //     } else {
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                    //     }
+                    // } else {
+                    //
+                    //     for (var i = 0; i < data.data.length; i++) {
+                    //         if (data.data[i].Origin_Zone == value.properties.OBJECTID_1) {
+                    //             if (data.data[i].Destination_Zone - 1 < 1267) {
+                    //                 drawZones[data.data[i].Destination_Zone - 1].setColorValue += Number(data.data[i].Count);
+                    //                 zoneColor = drawZones[data.data[i].Destination_Zone - 1].setColorValue;
+                    //                 drawZones[data.data[i].Destination_Zone - 1].setOptions({
+                    //                     fillColor: color_range2(drawZones[data.data[i].Destination_Zone - 1].setColorValue),
+                    //                     strokeWeight: 2.0,
+                    //                     fillOpacity: 1
+                    //                 })
+                    //             }
+                    //         }
+                    //     }
+                    //
+                    //     if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
+                    //     } else {
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend2);
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
+                    //     }
+                    //
+                    // }else {
+                    //
+                    //     for (var i = 0; i < data.data.length; i++) {
+                    //         if (data.data[i].Origin_Zone == value.properties.OBJECTID_1) {
+                    //             if (data.data[i].Destination_Zone - 1 < 1267) {
+                    //                 drawZones[data.data[i].Destination_Zone - 1].setColorValue += Number(data.data[i].Count);
+                    //                 zoneColor = drawZones[data.data[i].Destination_Zone - 1].setColorValue;
+                    //                 drawZones[data.data[i].Destination_Zone - 1].setOptions({
+                    //                     fillColor: color_range2(drawZones[data.data[i].Destination_Zone - 1].setColorValue),
+                    //                     strokeWeight: 2.0,
+                    //                     fillOpacity: 1
+                    //                 })
+                    //             }
+                    //         }
+                    //     }
+                    //
+                    //     if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
+                    //     } else {
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend2);
+                    //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
+                    //     }
+                    //
+                    // }
+                    clickedZone = value.properties;
+                    console.log("The zone clicked on is: " + value.properties.OBJECTID_1);
+                    //console.log(value.properties);
+                    //console.log(data.data[0].Destination_Zone);
+                    //console.log(drawZones.length);
+                    for (var i = 0; i < drawZones.length; i++) {
+                        drawZones[i].setOptions({
+                            fillColor: "rgba(0,0,0,.03)",
+                            strokeWeight: 0,
+                            fillOpacity: 1,
+                            zIndex: 0
+                        });
+                        drawZones[i].setColorValue = 0;
+                    }
+
+                    //map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(
+                    //document.getElementById('legend'));
+
+                    // Create the legend and display on the map
+                    if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
+                        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                    }
+                    else {
+                        console.log("test");
+                        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
+                        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+                    }
+
+
+                    var routeCount = 0;
+                    //Clear previous paths
+                    directionsDisplays.forEach((d) => {
+                        d.setDirections({routes: []});
+                    });
+                    directionsDisplays = [];
+                    var zoneRoutes = [];
+                    for (var i = 0; i < data.data.length; i++) {
+                        //console.log(data.data[i].Origin_Zone);
+                        if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
+                            //console.log(data.data[i].Destination_Zone);
+                            //zoneColor++;
+                            //console.log(value.properties.OBJECTID_1);
+                            //console.log(drawZones[data.data[i].Origin_Zone - 1]);
+
+
+                            if (data.data[i].Origin_Zone - 1 < 1267) {
+
+                                drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
+                                //console.log(data.data[i].Count);
+                                //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
+                                //console.log(zoneColor);
+                                //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
+                                //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
+                                drawZones[data.data[i].Origin_Zone - 1].setOptions({
+                                    fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
+                                    strokeWeight: 2.0,
+                                    fillOpacity: 1
+                                });
+
+
+                                //Draw the path between the two zones.
+                                if (routeCount < 100) {
+                                    zoneRoutes.push({
+                                        sourceCenter: centers[data.data[i].Origin_Zone - 1].center,
+                                        destCenter: centers[value.properties.OBJECTID_1 - 1].center,
+                                        source: data.data[i].Origin_Zone,
+                                        dest: value.properties.OBJECTID_1
+                                    });
+                                    routeCount++;
+                                }
+                            }
+                        }
+                    }
+                    // calcRoute(zoneRoutes);
+                    //Make selected darker
+
+
+                    //Get bound for polygon// calculate the bounds of the polygon
+                    //var bounds = new google.maps.LatLngBounds();
+                    drawZone.setOptions({
+                        fillColor: "green",
+                        strokeWeight: 2.0,
+                        fillOpacity: 0.4
+                    });
+                }
+            });
+            google.maps.event.addListener(drawZone, 'mouseover', function (event) {
+
+                moused = true;
+                if (clickedZone) {
+                    var selectable = false;
+                    data.data.forEach((d) => {
+                        if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
+                            selectable = true;
+                        }
+                    });
+                    if (selectable) {
+                        calcRoute([{
+                            sourceCenter: centers[value.properties.OBJECTID_1 - 1].center,
+                            destCenter: centers[clickedZone.OBJECTID_1 - 1].center,
+                            source: value.properties.OBJECTID_1,
+                            dest: clickedZone.OBJECTID_1
+                        }]);
+                    }
+                    if (selectable || this.zone == clickedZone.OBJECTID_1) {
+                        this.setOptions({
+                            strokeColor: "black",
+                            strokeOpacity: 1,
+                            strokeWeight: 1.5
+                        });
+                    }
+                }
+                else {
+                    this.setOptions({
+                        strokeColor: "black",
+                        strokeOpacity: 1,
+                        strokeWeight: 1.5
+                    });
+                }
+
+
+            });
+
+            google.maps.event.addListener(drawZone, 'mouseout', function (event) {
+
+                if (moused == true) {
+                    moused = false;
+                    this.setOptions({
+                        strokeOpacity: 0.2
+
+                    });
+                }
+                directionsDisplays.forEach((d) => {
+                    if (!subClickedZones[0] || d.source != subClickedZones[0].OBJECTID_1) d.setDirections({routes: []});
+                });
+
+            });
+
+            google.maps.event.addListener(drawZone, 'dblclick', function (event) {
+                //Make all lighter
+                //console.log("The zone clicked on is: " + drawZone);
+                totalDest = 0;
+                totalOrigin = 0;
+                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
+                console.log(value.properties);
+                infowindow.close();
+                for (var i = 0; i < data.data.length; i++) {
+
+                    if (data.data[i].Destination_Zone_Num == value.properties.OBJECTID_1) {
+                        totalDest += Number(data.data[i].Count)
+                    }
+                    if (data.data[i].Origin_Zone_Num == value.properties.OBJECTID_1) {
+                        totalOrigin += Number(data.data[i].Count)
+                    }
+                }
+                infowindow.setContent("<p>Zone: " + value.properties.OBJECTID_1 + ".</p><p>County: " + value.properties.COUNTY + ".</p><p>Total Origin Trips: " + Math.ceil(totalOrigin) + ".</p><p>Total Destination Trips: " + Math.ceil(totalDest) + ".</p>");
+                infowindow.setPosition(drawZone.getBounds().getCenter());
+                infowindow.open(map);
+                for (var i = 0; i < drawZones.length; i++) {
+
+                    drawZones[i].setOptions({
                         strokeColor: "black",
                         strokeOpacity: 0.2,
                         strokeWeight: 1.5,
                         fillColor: "green",
                         fillOpacity: 0.4
                     });
-                    drawZone.setMap(map);
-
-                    drawZone.zone = value.properties.OBJECTID_1;
-                    drawZone.setColorValue = 0;
-
-                    // Create the legend and display on the map
-                    if (map.controls[google.maps.ControlPosition.RIGHT_TOP].length < 1) {
-                        map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend3);
-                    } else {
-                        map.controls[google.maps.ControlPosition.RIGHT_TOP].pop(legend3);
-                        map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend3);
-                    }
-
-                    google.maps.event.addListener(drawZone, 'click', function (event) {
-
-					console.log("top congested:" + topCongestedList);
-                        if (clickedZone && clickedZone == value.properties){
-                            for (var i = 0; i < drawZones.length; i++) {
-                                drawZones[i].setOptions({fillColor: "green", strokeWeight: 1.5, fillOpacity: 0.2});
-                            }
-                            directionsDisplays.forEach((d) => {
-                                d.setDirections({routes: []});
-                            });
-                            clickedZone = undefined;
-                        }
-                        else if (clickedZone) {
-                            var clicked = subClickedZones.find(function (d){return d == value.properties});
-                            if (clicked){
-                                subClickedZones.splice(subClickedZones.indexOf(clicked, 1));
-                                directionsDisplays.forEach((d) => {
-                                    d.setDirections({routes: []});
-                                });
-                            }
-                            else{
-                                subClickedZones = [];
-                                var selectable = false;
-                                data.data.forEach((d) => {
-                                    if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
-                                        selectable = true;
-                                    }
-                                });
-                                if (selectable){
-                                    directionsDisplays.forEach((d) => {
-                                        d.setDirections({routes: []});
-                                    });
-                                    subClickedZones.push (value.properties);
-                                    calcRoute([{sourceCenter: centers[value.properties.OBJECTID_1 - 1].center, destCenter: centers[clickedZone.OBJECTID_1 - 1].center, source: value.properties.OBJECTID_1, dest: clickedZone.OBJECTID_1}])
-                                }
-                            }
-                        }
-                        else{
-                            // if (destination) {
-                            //     for (var i = 0; i < data.data.length; i++) {
-                            //
-                            //         if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
-                            //
-                            //             if (data.data[i].Origin_Zone - 1 < 1267) {
-                            //
-                            //                 drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
-                            //                 zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
-                            //                 drawZones[data.data[i].Origin_Zone - 1].setOptions({
-                            //                     fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
-                            //                     strokeWeight: 2.0,
-                            //                     fillOpacity: 1
-                            //                 })
-                            //             }
-                            //         }
-                            //     }
-                            //     // Create the legend and display on the map
-                            //     if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
-                            //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
-                            //     } else {
-                            //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
-                            //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
-                            //     }
-                            // } else {
-                            //
-                            //     for (var i = 0; i < data.data.length; i++) {
-                            //         if (data.data[i].Origin_Zone == value.properties.OBJECTID_1) {
-                            //             if (data.data[i].Destination_Zone - 1 < 1267) {
-                            //                 drawZones[data.data[i].Destination_Zone - 1].setColorValue += Number(data.data[i].Count);
-                            //                 zoneColor = drawZones[data.data[i].Destination_Zone - 1].setColorValue;
-                            //                 drawZones[data.data[i].Destination_Zone - 1].setOptions({
-                            //                     fillColor: color_range2(drawZones[data.data[i].Destination_Zone - 1].setColorValue),
-                            //                     strokeWeight: 2.0,
-                            //                     fillOpacity: 1
-                            //                 })
-                            //             }
-                            //         }
-                            //     }
-                            //
-                            //     if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
-                            //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
-                            //     } else {
-                            //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend2);
-                            //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
-                            //     }
-                            //
-                            // }else {
-                        //
-                        //     for (var i = 0; i < data.data.length; i++) {
-                        //         if (data.data[i].Origin_Zone == value.properties.OBJECTID_1) {
-                        //             if (data.data[i].Destination_Zone - 1 < 1267) {
-                        //                 drawZones[data.data[i].Destination_Zone - 1].setColorValue += Number(data.data[i].Count);
-                        //                 zoneColor = drawZones[data.data[i].Destination_Zone - 1].setColorValue;
-                        //                 drawZones[data.data[i].Destination_Zone - 1].setOptions({
-                        //                     fillColor: color_range2(drawZones[data.data[i].Destination_Zone - 1].setColorValue),
-                        //                     strokeWeight: 2.0,
-                        //                     fillOpacity: 1
-                        //                 })
-                        //             }
-                        //         }
-                        //     }
-                        //
-                        //     if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
-                        //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
-                        //     } else {
-                        //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend2);
-                        //         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
-                        //     }
-                        //
-                        // }
-                            clickedZone = value.properties;
-                            console.log("The zone clicked on is: " + value.properties.OBJECTID_1);
-                            //console.log(value.properties);
-                            //console.log(data.data[0].Destination_Zone);
-                            //console.log(drawZones.length);
-                            for (var i = 0; i < drawZones.length; i++) {
-                                drawZones[i].setOptions({fillColor: "rgba(0,0,0,.03)", strokeWeight: 0, fillOpacity: 1, zIndex: 0});
-                                drawZones[i].setColorValue = 0;
-                            }
-
-                            //map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(
-                            //document.getElementById('legend'));
-
-                            // Create the legend and display on the map
-                            if(map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].length < 1){
-                                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(legend);
-                            }
-                            else {
-                                console.log("test");
-                                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].pop(legend);
-                                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(legend);
-                            }
-
-
-                            var routeCount = 0;
-                            //Clear previous paths
-                            directionsDisplays.forEach((d) => {
-                                d.setDirections({routes: []});
-                            });
-                            directionsDisplays = [];
-                            var zoneRoutes = [];
-                            for(var i = 0; i < data.data.length; i++){
-                                //console.log(data.data[i].Origin_Zone);
-                                if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
-                                    //console.log(data.data[i].Destination_Zone);
-                                    //zoneColor++;
-                                    //console.log(value.properties.OBJECTID_1);
-                                    //console.log(drawZones[data.data[i].Origin_Zone - 1]);
-
-
-                                    if (data.data[i].Origin_Zone - 1 < 1267) {
-
-                                        drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
-                                        //console.log(data.data[i].Count);
-                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                        zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
-                                        //console.log(zoneColor);
-                                        //console.log(drawZones[data.data[i].Origin_Zone - 1].setColorValue);
-                                        //console.log(color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue));
-                                        drawZones[data.data[i].Origin_Zone - 1].setOptions({
-                                            fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
-                                            strokeWeight: 2.0,
-                                            fillOpacity: 1
-                                        });
-
-
-                                        //Draw the path between the two zones.
-                                        if (routeCount < 100){
-                                            zoneRoutes.push({sourceCenter: centers[data.data[i].Origin_Zone - 1].center, destCenter: centers[value.properties.OBJECTID_1 - 1].center, source: data.data[i].Origin_Zone, dest: value.properties.OBJECTID_1});
-                                            routeCount++;
-                                        }
-                                    }
-                                }
-                            }
-                            // calcRoute(zoneRoutes);
-                            //Make selected darker
-
-
-                            //Get bound for polygon// calculate the bounds of the polygon
-                            //var bounds = new google.maps.LatLngBounds();
-                            drawZone.setOptions({
-                                fillColor: "green",
-                                strokeWeight: 2.0,
-                                fillOpacity: 0.4
-                            });
-                        }
-                    });
-                    google.maps.event.addListener(drawZone, 'mouseover', function(event) {
-
-                        moused = true;
-                        if (clickedZone){
-                            var selectable = false;
-                            data.data.forEach((d) => {
-                                if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
-                                    selectable = true;
-                                }
-                            });
-                            if (selectable){
-                                calcRoute([{sourceCenter: centers[value.properties.OBJECTID_1 - 1].center, destCenter: centers[clickedZone.OBJECTID_1 - 1].center, source: value.properties.OBJECTID_1, dest: clickedZone.OBJECTID_1}]);
-                            }
-                            if (selectable || this.zone == clickedZone.OBJECTID_1) {
-                                this.setOptions({
-                                    strokeColor: "black",
-                                    strokeOpacity: 1,
-                                    strokeWeight: 1.5
-                                });
-                            }
-                        }
-                        else{
-                            this.setOptions({
-                                strokeColor: "black",
-                                strokeOpacity: 1,
-                                strokeWeight: 1.5
-                            });
-                        }
-                        
-
-                    });
-
-                    google.maps.event.addListener(drawZone, 'mouseout', function(event) {
-
-                        if (moused == true) {
-                            moused = false;
-                            this.setOptions({
-                                strokeOpacity: 0.2
-
-                            });
-                        }
-                        directionsDisplays.forEach((d) => {
-                            if (!subClickedZones[0] || d.source != subClickedZones[0].OBJECTID_1) d.setDirections({routes: []});
-                        });
-
-                    });
-
-                    google.maps.event.addListener(drawZone, 'dblclick', function(event) {
-                        //Make all lighter
-                        //console.log("The zone clicked on is: " + drawZone);
-                        totalDest = 0;
-                        totalOrigin = 0;
-                        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
-                        console.log(value.properties);
-                        infowindow.close();
-                        for (var i = 0; i < data.data.length; i++) {
-
-                            if (data.data[i].Destination_Zone_Num == value.properties.OBJECTID_1) {
-                                totalDest += Number(data.data[i].Count)
-                            }
-                            if (data.data[i].Origin_Zone_Num == value.properties.OBJECTID_1) {
-                                totalOrigin += Number(data.data[i].Count)
-                            }
-                        }
-                        infowindow.setContent("<p>Zone: " + value.properties.OBJECTID_1 + ".</p><p>County: " + value.properties.COUNTY + ".</p><p>Total Origin Trips: " + Math.ceil(totalOrigin) + ".</p><p>Total Destination Trips: " + Math.ceil(totalDest) + ".</p>");
-                        infowindow.setPosition(drawZone.getBounds().getCenter());
-                        infowindow.open(map);
-                        for (var i = 0; i < drawZones.length; i++) {
-
-                            drawZones[i].setOptions({
-                                strokeColor: "black",
-                                strokeOpacity: 0.2,
-                                strokeWeight: 1.5,
-                                fillColor: "green",
-                                fillOpacity: 0.4
-                            });
-                        }
-                        map.fitBounds(drawZone.getBounds());
-                        console.log("The zoom level is: " + map.getZoom());
-                        map.setZoom(map.getZoom() - 1);
-                        console.log("The next zoom level is: " + map.getZoom());
-                        if (map.getZoom() > 14) {
-                            map.setZoom(14);
-                            console.log("The new zoom level is: " + map.getZoom());
-                        }
-                        map.setCenter(drawZone.getBounds().getCenter());
-                    });
-
-                    drawZones.push(drawZone);
-                });
+                }
+                map.fitBounds(drawZone.getBounds());
+                console.log("The zoom level is: " + map.getZoom());
+                map.setZoom(map.getZoom() - 1);
+                console.log("The next zoom level is: " + map.getZoom());
+                if (map.getZoom() > 14) {
+                    map.setZoom(14);
+                    console.log("The new zoom level is: " + map.getZoom());
+                }
+                map.setCenter(drawZone.getBounds().getCenter());
             });
+
+            drawZones.push(drawZone);
+        });
     }
 }
-
 
 
 /********************************************************************************************
@@ -1122,7 +1142,7 @@ function CenterControl(controlDiv, map) {
 
     // Set CSS for the control border.
     var controlUI = document.createElement('div');
-    controlUI.style.backgroundColor = 'grey';
+    controlUI.style.backgroundColor = 'lightgrey';
     controlUI.style.border = '2px solid black';
     controlUI.style.borderRadius = '4px';
     controlUI.style.boxShadow = '0 1px 2px rgba(0,0,0,.3)';
@@ -1141,19 +1161,19 @@ function CenterControl(controlDiv, map) {
     controlText.style.lineHeight = '16px';
     controlText.style.paddingLeft = '2px';
     controlText.style.paddingRight = '2px';
-	controlText.innerHTML = '1';
-	//console.log(topCongestedList);
-    controlText.innerHTML = 'From Zone' + topCongestedList[0].Origin_Zone_Num +'to Zone' + topCongestedList[0].Destination_Zone_Num;
+    controlText.innerHTML = '1';
+    //console.log(topCongestedList);
+    controlText.innerHTML = 'From Zone ' + topCongestedList[0].Origin_Zone_Num + ' to Zone ' + topCongestedList[0].Destination_Zone_Num;
     controlUI.appendChild(controlText);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI.addEventListener('click', function() {
+    controlUI.addEventListener('click', function () {
         console.log("legend Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1173,17 +1193,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[1].Origin_Zone_Num +'to Zone' + topCongestedList[1].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[1].Origin_Zone_Num + ' to Zone ' + topCongestedList[1].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 2 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI3 = document.createElement('div');
-    controlUI3.style.backgroundColor = 'grey';
+    controlUI3.style.backgroundColor = 'lightgrey';
     controlUI3.style.border = '3px solid black';
     controlUI3.style.borderRadius = '3px';
     controlUI3.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1202,17 +1222,17 @@ function CenterControl(controlDiv, map) {
     controlText3.style.lineHeight = '16px';
     controlText3.style.paddingLeft = '5px';
     controlText3.style.paddingRight = '5px';
-    controlText3.innerHTML = 'From Zone' + topCongestedList[2].Origin_Zone_Num +'to Zone' + topCongestedList[2].Destination_Zone_Num;
+    controlText3.innerHTML = 'From Zone ' + topCongestedList[2].Origin_Zone_Num + ' to Zone ' + topCongestedList[2].Destination_Zone_Num;
     controlUI3.appendChild(controlText3);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI3.addEventListener('click', function() {
+    controlUI3.addEventListener('click', function () {
         console.log("legend 3 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1231,17 +1251,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[3].Origin_Zone_Num +'to Zone' + topCongestedList[3].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[3].Origin_Zone_Num + ' to Zone ' + topCongestedList[3].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 4 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1260,17 +1280,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[4].Origin_Zone_Num +'to Zone' + topCongestedList[4].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[4].Origin_Zone_Num + ' to Zone ' + topCongestedList[4].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 5 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1289,17 +1309,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[5].Origin_Zone_Num +'to Zone' + topCongestedList[5].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[5].Origin_Zone_Num + ' to Zone ' + topCongestedList[5].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 6 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1318,17 +1338,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[6].Origin_Zone_Num +'to Zone' + topCongestedList[6].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[6].Origin_Zone_Num + ' to Zone ' + topCongestedList[6].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 7 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1347,17 +1367,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[7].Origin_Zone_Num +'to Zone' + topCongestedList[7].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[7].Origin_Zone_Num + ' to Zone ' + topCongestedList[7].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 8 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1376,17 +1396,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[8].Origin_Zone_Num +'to Zone' + topCongestedList[8].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[8].Origin_Zone_Num + ' to Zone ' + topCongestedList[8].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 9 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1405,17 +1425,17 @@ function CenterControl(controlDiv, map) {
     controlText2.style.lineHeight = '16px';
     controlText2.style.paddingLeft = '5px';
     controlText2.style.paddingRight = '5px';
-    controlText2.innerHTML = 'From Zone' + topCongestedList[9].Origin_Zone_Num +'to Zone' + topCongestedList[9].Destination_Zone_Num;
+    controlText2.innerHTML = 'From Zone ' + topCongestedList[9].Origin_Zone_Num + ' to Zone ' + topCongestedList[9].Destination_Zone_Num;
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend 10 Clicked");
     });
 
     // Set CSS for the control border.
     var controlUI2 = document.createElement('div');
-    controlUI2.style.backgroundColor = 'grey';
+    controlUI2.style.backgroundColor = 'lightgrey';
     controlUI2.style.border = '3px solid black';
     controlUI2.style.borderRadius = '3px';
     controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -1438,7 +1458,7 @@ function CenterControl(controlDiv, map) {
     controlUI2.appendChild(controlText2);
 
     // Setup the click event listeners: simply set the map to Chicago.
-    controlUI2.addEventListener('click', function() {
+    controlUI2.addEventListener('click', function () {
         console.log("legend Show All Clicked");
     });
 
@@ -1452,10 +1472,14 @@ function calcRoute(zoneRoutes) {
         strokeOpacity: 0.9,
         zIndex: 10
     };
-    if (route){
+    if (route) {
         route.sources.forEach((d) => {
-            if (d.sourceId == zoneRoutes[0].source){
-                var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: stroke, preserveViewport: true});
+            if (d.sourceId == zoneRoutes[0].source) {
+                var directionsDisplay = new google.maps.DirectionsRenderer({
+                    suppressMarkers: true,
+                    polylineOptions: stroke,
+                    preserveViewport: true
+                });
                 directionsDisplay.dest = zoneRoutes[0].dest;
                 directionsDisplay.source = zoneRoutes[0].source;
                 directionsDisplay.setMap(map);
@@ -1465,11 +1489,16 @@ function calcRoute(zoneRoutes) {
             }
         });
     }
-    if (requestPaths){
+    if (requestPaths) {
         if (!route) routes[zoneRoutes[0].dest] = {sources: []};
         var startPoint = zoneRoutes[0].sourceCenter;
         var endPoint = zoneRoutes[0].destCenter;
-        var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true, polylineOptions: stroke, preserveViewport: true, zIndex: 1000});
+        var directionsDisplay = new google.maps.DirectionsRenderer({
+            suppressMarkers: true,
+            polylineOptions: stroke,
+            preserveViewport: true,
+            zIndex: 1000
+        });
         directionsDisplay.setMap(map);
 
         var start = new google.maps.LatLng(startPoint.lat, startPoint.lng);
@@ -1492,13 +1521,17 @@ function calcRoute(zoneRoutes) {
                 directionsDisplays.push(directionsDisplay);
                 routes[zoneRoutes[0].dest].sources.push({sourceId: zoneRoutes[0].source, path: response});
                 if (zoneRoutes.length > 1) {
-                    zoneRoutes.splice(0,1);
-                    setTimeout(function () {calcRoute(zoneRoutes);}, 300);
+                    zoneRoutes.splice(0, 1);
+                    setTimeout(function () {
+                        calcRoute(zoneRoutes);
+                    }, 300);
                 }
             } else {
                 if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
-                    console.log ("limit reached");
-                    setTimeout(function (){calcRoute(zoneRoutes);}, 300);
+                    console.log("limit reached");
+                    setTimeout(function () {
+                        calcRoute(zoneRoutes);
+                    }, 300);
 
                 } else {
                     alert("Directions Request from " + start.toUrlValue(6) + " to " + end.toUrlValue(6) + " failed: " + status);
