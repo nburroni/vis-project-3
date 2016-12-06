@@ -154,7 +154,7 @@ html, body {
     top: 50%;
     transform: translateY(-50%);
 }
-.dark-mode-toggle {
+.toggle-filters {
     position: fixed;
     bottom: 3%;
     left: 1%;
@@ -163,7 +163,15 @@ html, body {
     border-radius: 5px;
     padding: 5px;
 }
-.toggle-group .btn-primary {
+#in-out-bound + .toggle-group .toggle-off {
+    background-color: #a1d765;
+}
+#in-out-bound + .toggle-group .toggle-on {
+    background-color: #5cd7aa;
+    color: #000;
+    border-color: #adadad;
+}
+#dark-mode + .toggle-group .toggle-on {
     background-color: #123a5d;
 }
 #filters .apply {

@@ -145,11 +145,11 @@
                                 filteredCenters = filteredCenters.filter(c => filters.counties.includes(zoneCounties[c.TAZ_ID]));
                             }
                         }
+                        window.direction = 'inbound';
 
                         if (window.onDataReady) window.onDataReady({
                             day: num,
                             data: filtered,
-                            direction: 'dest',
                             topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
                         }, filteredCenters, filteredGJ);
                         loader.classed('hidden', true);

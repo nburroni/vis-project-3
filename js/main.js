@@ -493,8 +493,11 @@ function initMap() {
     }
 
     $('input#dark-mode').change(function() {
-        if (this.checked) map.mapTypes.set('styled_map', new google.maps.StyledMapType(darkMapJson));
-        else map.mapTypes.set('styled_map', new google.maps.StyledMapType(silverMapJson));
+        map.mapTypes.set('styled_map', new google.maps.StyledMapType(this.checked ? darkMapJson : silverMapJson));
+    });
+
+    $('input#in-out-bound').change(function() {
+        window.direction = this.checked ? 'outbound' : 'inbound';
     });
 
     var infowindow = new google.maps.InfoWindow();
