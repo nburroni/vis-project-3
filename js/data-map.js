@@ -147,10 +147,22 @@
                         }
                         window.direction = 'inbound';
 
+                        let temp = {};
+                        mapped.forEach(d => {
+                            let key = `${d.Origin_Zone_Num}-${d.Destination_Zone_Num}`;
+                            if (temp[key]) temp[key].Count_Num += d.Count_Num;
+                            else temp[key] = Object.assign({}, d);
+                        });
+                        let topCongested = [];
+                        for (let k in temp)
+                            if (temp.hasOwnProperty(k) && temp[k].Count_Num) topCongested.push(temp[k]);
+                        topCongested = topCongested.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10);
+
                         if (window.onDataReady) window.onDataReady({
                             day: num,
                             data: filtered,
-                            topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
+                            // topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
+                            topCongested: topCongested
                         }, filteredCenters, filteredGJ);
                         loader.classed('hidden', true);
 

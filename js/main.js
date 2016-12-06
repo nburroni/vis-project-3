@@ -919,7 +919,7 @@ function initMap() {
         legend3.id = 'legend3';
 
         var content3 = [];
-        content3.push('<h4>Top Ten Congested Areas</h4>');
+        content3.push('<h4>Top Ten Congested Trips</h4>');
 
         legend3.innerHTML = content3.join('');
         legend3.index = 1;
