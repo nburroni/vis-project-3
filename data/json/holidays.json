@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Average Saturday",
+    "dayOfMonth": 5,
+    "type": "Average"
+  },
+  {
+    "name": "Average Weekday",
+    "dayOfMonth": 9,
+    "type": "Average"
+  },
+  {
+    "name": "Palm Sunday",
+    "dayOfMonth": 13,
+    "type": "Catholic"
+  },
+  {
+    "name": "Passover (Start)",
+    "dayOfMonth": 15,
+    "type": "Jewish"
+  },
+  {
+    "name": "Holy Thursday",
+    "dayOfMonth": 17,
+    "type": "Catholic"
+  },
+  {
+    "name": "Good Friday",
+    "dayOfMonth": 18,
+    "type": "Catholic"
+  },
+  {
+    "name": "Easter",
+    "dayOfMonth": 20,
+    "type": "Catholic"
+  },
+  {
+    "name": "Earth Day",
+    "dayOfMonth": 22,
+    "type": "US"
+  },
+  {
+    "name": "Passover (End)",
+    "dayOfMonth": 22,
+    "type": "Jewish"
+  },
+  {
+    "name": "Administrative Professionals",
+    "dayOfMonth": 23,
+    "type": "US"
+  },
+  {
+    "name": "Arbor Day",
+    "dayOfMonth": 25,
+    "type": "US"
+  },
+  {
+    "name": "Divine Mercy Sunday",
+    "dayOfMonth": 27,
+    "type": "Catholic"
+  },
+  {
+    "name": "Holocaust Remem. Day",
+    "dayOfMonth": 27,
+    "type": "Jewish"
+  }
+]

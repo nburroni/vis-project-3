@@ -1,28 +1,91 @@
+/* TODO Bugs
+* Click on a zone, clear map, click on a top ten item, routes for the previously selected zone still show
+*
+* */
+
 (function () {
     let map;
+    let infowindow;
     let directionsService;
     let directionsDisplays = [];
     let routes = [];
     let clickedZone;
     let subClickedZones = [];
-    let startTime;
-    let purpose;
-    let date;
     let totalDest;
     let totalOrigin;
     let zoneColor = 0;
-    startTime = 10;
-//let color_range = d3.scaleLinear().domain([0, 20000]).range(["rgba(253,212,158,.8)", "rgba(179,0,0,.8)"]);
     let topCongestedList = {};
     let closeInfoWindow = false;
+    let markers = {};
 
     let color_range = d3.scaleLinear().domain([0, 15000]).range(["rgba(253,187,132,.8)", "rgba(127,0,0,.8)"]);
     let color_range2 = d3.scaleLinear().domain([0, 15000]).range(["rgba(250,159,181,.8)", "rgba(73,0,106,.8)"]);
-    let clicked = false;
     let moused = false;
-    let destination = false;
 
     let drawZones = [];
+
+    const topTenBg = 'lightgrey';
+    const topTenSelectedBg = 'rgba(255,0,0,.3)';
+
+    let fillMarkers = () => {
+        infowindow = new google.maps.InfoWindow();
+        const places = ['catholic church', 'jewish temple', 'attraction'];
+        let currentPlaceIndex = 0;
+
+        let reqPlaces = () => {
+            let service = new google.maps.places.PlacesService(map);
+            service.nearbySearch({
+                location: new google.maps.LatLng(28.535515, -81.382955),
+                radius: 30000,
+                name: places[currentPlaceIndex]
+            }, placeMarkers);
+        };
+        reqPlaces();
+
+        function placeMarkers(results, status, pagination) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                for (var i = 0; i < results.length; i++) {
+                    // createMarker(results[i]);
+                    place = results[i];
+                    let marker = new google.maps.Marker({
+                        map: null,
+                        position: place.geometry.location
+                    });
+                    let name = places[currentPlaceIndex];
+                    if (!markers[name]) markers[name] = [];
+                    markers[name].push(marker);
+                    google.maps.event.addListener(marker, 'click', function() {
+                        infowindow.setContent(place.name);
+                        infowindow.open(map, this);
+                    });
+                }
+            }
+            if (pagination.hasNextPage) pagination.nextPage();
+            else if (currentPlaceIndex + 1 < places.length) {
+                currentPlaceIndex++;
+                reqPlaces();
+            }
+        }
+    };
+
+    window.showMarkers = (name) => {
+        Object.keys(markers).forEach(k => {
+            if (markers.hasOwnProperty(k)) {
+                if (k == name)
+                    markers[k].forEach(m => m.setMap(map));
+                else
+                    markers[k].forEach(m => m.setMap(null));
+            }
+        })
+    };
+
+    window.hideMarkers = () => {
+        Object.keys(markers).forEach(k => {
+            if (markers.hasOwnProperty(k)) {
+                markers[k].forEach(m => m.setMap(null));
+            }
+        })
+    };
 
     window.initMap = function () {
         map = new google.maps.Map(document.getElementById('map'), {
@@ -46,6 +109,8 @@
             }
         }
 
+        fillMarkers();
+
         $('input#dark-mode').change(function () {
             map.mapTypes.set('styled_map', new google.maps.StyledMapType(this.checked ? darkMapJson : silverMapJson));
         });
@@ -55,12 +120,10 @@
         });
 
 
-        window.onDataReady = function (data, centers, GEO_JSON) {
+        window.onDataReady = function (data, centers, GEO_JSON, holidays) {
             clickedZone = undefined;
             topCongestedList = data.topCongested;
             let max = Math.ceil(topCongestedList[0].Count_Num);
-            //console.log(topCongestedList);
-            //console.log(max);
             let num1 = Math.ceil((max / 6));
             let num2 = Math.ceil((max / 6) * 2);
             let num3 = Math.ceil((max / 6) * 3);
@@ -128,7 +191,6 @@
             GEO_JSON.features.forEach(function (value, key) {
                 //convert given coordinates array into
                 let latlog = getLatlongMap(value.geometry.coordinates[0]);
-                //console.log(value);
 
                 let drawZone = new google.maps.Polygon({
                     paths: latlog,
@@ -139,7 +201,6 @@
                     fillOpacity: 0.4
                 });
                 drawZone.setMap(map);
-                //console.log(value.properties.TAZ_ID);
                 drawZone.zone = value.properties.TAZ_ID;
                 drawZone.setColorValue = 0;
 
@@ -209,7 +270,6 @@
 
                         if (window.direction == 'inbound') {
                             clickedZone = value.properties;
-                            console.log("The zone clicked on is: " + value.properties.TAZ_ID);
                             for (let i = 0; i < drawZones.length; i++) {
                                 drawZones[i].setOptions({
                                     fillColor: "rgba(0,0,0,.03)",
@@ -224,7 +284,6 @@
                             if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
                                 map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
                             } else {
-                                console.log("test");
                                 map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
                                 map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
                             }
@@ -277,7 +336,6 @@
                         } else {
 
                             clickedZone = value.properties;
-                            console.log("The zone clicked on is: " + value.properties.TAZ_ID);
                             for (let i = 0; i < drawZones.length; i++) {
                                 drawZones[i].setOptions({
                                     fillColor: "rgba(0,0,0,.03)",
@@ -292,7 +350,6 @@
                             if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
                                 map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
                             } else {
-                                console.log("test");
                                 map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend2);
                                 map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
                             }
@@ -346,17 +403,8 @@
                     }
 
 
-                    button0.style.backgroundColor = 'lightgrey';
-                    button1.style.backgroundColor = 'lightgrey';
-                    button2.style.backgroundColor = 'lightgrey';
-                    button3.style.backgroundColor = 'lightgrey';
-                    button4.style.backgroundColor = 'lightgrey';
-                    button5.style.backgroundColor = 'lightgrey';
-                    button6.style.backgroundColor = 'lightgrey';
-                    button7.style.backgroundColor = 'lightgrey';
-                    button8.style.backgroundColor = 'lightgrey';
-                    button9.style.backgroundColor = 'lightgrey';
-                    buttonAll.style.backgroundColor = 'lightgrey';
+                    resetTopTenBg();
+                    buttonAll.style.backgroundColor = topTenBg;
 
                 });
                 google.maps.event.addListener(drawZone, 'mouseover', function (event) {
@@ -377,19 +425,6 @@
                                 dest: clickedZone.OBJECTID_1
                             }]);
                         }
-                        if (selectable || this.zone == clickedZone.OBJECTID_1) {
-                            this.setOptions({
-                                strokeColor: "black",
-                                strokeOpacity: 1,
-                                strokeWeight: 1.5
-                            });
-                        }
-                    } else {
-                        this.setOptions({
-                            strokeColor: "black",
-                            strokeOpacity: 1,
-                            strokeWeight: 1.5
-                        });
                     }
 
 
@@ -414,7 +449,6 @@
 
                 google.maps.event.addListener(drawZone, 'dblclick', function (event) {
                     //Make all lighter
-                    //console.log("The zone clicked on is: " + drawZone);
                     totalDest = 0;
                     totalOrigin = 0;
 
@@ -422,7 +456,6 @@
                         map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
                     }
 
-                    //console.log(value.properties);
                     infowindow.close();
                     for (let i = 0; i < data.data.length; i++) {
 
@@ -449,12 +482,9 @@
                         });
                     }
                     map.fitBounds(drawZone.getBounds());
-                    console.log("The zoom level is: " + map.getZoom());
                     map.setZoom(map.getZoom() - 1);
-                    console.log("The next zoom level is: " + map.getZoom());
                     if (map.getZoom() > 14) {
                         map.setZoom(14);
-                        console.log("The new zoom level is: " + map.getZoom());
                     }
                     map.setCenter(drawZone.getBounds().getCenter());
 
@@ -468,14 +498,6 @@
 
                 drawZones.push(drawZone);
             });
-
-            /*let legend4 = document.createElement('div');
-             legend4.id = 'legend4';
-             let content4 = [];
-             content4.push('<h3>Congestion Info</h3>');
-             content4.push('<p>test</p>');
-             legend4.innerHTML = content4.join('');
-             legend4.index = 1;*/
 
             let legend3 = document.createElement('div');
             legend3.id = 'legend3';
@@ -509,13 +531,12 @@
         return latLongMap;
     }
 
-
     function createButton(controlDiv, num) {
         let displayNum = num + 1;
         // Set CSS for the control border.
         let controlUI = document.createElement('div');
         controlUI.id = "button" + num;
-        controlUI.style.backgroundColor = 'lightgrey';
+        controlUI.style.backgroundColor = topTenBg;
         controlUI.style.border = '3px solid black';
         controlUI.style.borderRadius = '3px';
         controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -539,8 +560,6 @@
 
         // Setup the click event listeners: simply set the map to Chicago.
         controlUI.addEventListener('click', function () {
-            //controlUI.style.backgroundColor = 'red';
-            console.log("legend " + num + " Clicked");
 
             if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length > 0) {
                 map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
@@ -552,7 +571,7 @@
                 if (drawZones[i].zone == topCongestedList[num].Origin_Zone_Num || drawZones[i].zone == topCongestedList[num].Destination_Zone_Num) {
 
                     drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
+                        fillColor: topTenSelectedBg,
                         strokeWeight: 4,
                         strokeColor: 'black',
                         fillOpacity: 1,
@@ -566,37 +585,25 @@
                         fillOpacity: 1,
                         zIndex: 0
                     });
-                    //console.log(drawZones[i].zone);
                 }
 
             }
 
-            button0.style.backgroundColor = 'lightgrey';
-            button1.style.backgroundColor = 'lightgrey';
-            button2.style.backgroundColor = 'lightgrey';
-            button3.style.backgroundColor = 'lightgrey';
-            button4.style.backgroundColor = 'lightgrey';
-            button5.style.backgroundColor = 'lightgrey';
-            button6.style.backgroundColor = 'lightgrey';
-            button7.style.backgroundColor = 'lightgrey';
-            button8.style.backgroundColor = 'lightgrey';
-            button9.style.backgroundColor = 'lightgrey';
-            buttonAll.style.backgroundColor = 'lightgrey';
-            controlUI.style.backgroundColor = 'red';
+            resetTopTenBg();
+            buttonAll.style.backgroundColor = topTenBg;
+            controlUI.style.backgroundColor = topTenSelectedBg;
 
-            //console.log(topCongestedList);
             let legend4 = document.createElement('div');
             legend4.id = 'legend4';
-            let content4 = [];
-            content4.push('<h3>Congestion Info</h3>');
-            content4.push("<p>Origination Zone: " + topCongestedList[num].Origin_Zone_Num + ".</p>");
-            content4.push("<p>Originating County: " + topCongestedList[num].Origin_County + ".</p>");
-            content4.push("<p>Destination Zone: " + topCongestedList[num].Destination_Zone_Num + ".</p>");
-            content4.push("<p>Destination County: " + topCongestedList[num].Destination_County + ".</p>");
-            content4.push("<p>Purpose of trips: " + topCongestedList[num].Purpose + ".</p>");
-            content4.push("<p>Total Trips: " + Math.ceil(topCongestedList[num].Count_Num) + ".</p>");
-            content4.push("<p>Trip Time: from " + topCongestedList[num].Time_Range_Str.from + " to " + topCongestedList[num].Time_Range_Str.to + ".</p>");
-            legend4.innerHTML = content4.join('');
+            legend4.innerHTML = `
+                <h3>Congestion Info</h3>
+                <p>Origination Zone: ${topCongestedList[num].Origin_Zone_Num}</p>
+                <p>Originating County: ${topCongestedList[num].Origin_County}</p>
+                <p>Destination Zone: ${topCongestedList[num].Destination_Zone_Num}</p>
+                <p>Destination County: ${topCongestedList[num].Destination_County}</p>
+                <p>Purpose of trips: ${topCongestedList[num].Purpose}</p>
+                <p>Total Trips: ${Math.ceil(topCongestedList[num].Count_Num)}</p>
+                <p>Trip Time: from ${topCongestedList[num].Time_Range_Str.from} to ${topCongestedList[num].Time_Range_Str.to}</p>`;
             legend4.index = 1;
 
 
@@ -614,21 +621,13 @@
 
     function CenterControl(controlDiv, map) {
 
-        createButton(controlDiv, 0);
-        createButton(controlDiv, 1);
-        createButton(controlDiv, 2);
-        createButton(controlDiv, 3);
-        createButton(controlDiv, 4);
-        createButton(controlDiv, 5);
-        createButton(controlDiv, 6);
-        createButton(controlDiv, 7);
-        createButton(controlDiv, 8);
-        createButton(controlDiv, 9);
+        for (let i = 0; i < 10; i++)
+            createButton(controlDiv, i);
 
         // Set CSS for the control border.
         let controlUI = document.createElement('div');
         controlUI.id = "buttonAll";
-        controlUI.style.backgroundColor = 'lightgrey';
+        controlUI.style.backgroundColor = topTenBg;
         controlUI.style.border = '3px solid black';
         controlUI.style.borderRadius = '3px';
         controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -659,154 +658,55 @@
 
 
             for (let i = 0; i < drawZones.length; i++) {
-
-
-                if (drawZones[i].zone == topCongestedList[0].Origin_Zone_Num || drawZones[i].zone == topCongestedList[0].Destination_Zone_Num) {
-
+                let zone = drawZones[i].zone;
+                if (topCongestedList.filter(d => d.Origin_Zone_Num == zone || d.Destination_Zone_Num == zone).length > 0)
                     drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
+                        fillColor: topTenSelectedBg,
                         strokeWeight: 4,
                         strokeColor: 'black',
                         fillOpacity: 1,
                     });
-
-                } else if (drawZones[i].zone == topCongestedList[1].Origin_Zone_Num || drawZones[i].zone == topCongestedList[1].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[2].Origin_Zone_Num || drawZones[i].zone == topCongestedList[2].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[3].Origin_Zone_Num || drawZones[i].zone == topCongestedList[3].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[4].Origin_Zone_Num || drawZones[i].zone == topCongestedList[4].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[5].Origin_Zone_Num || drawZones[i].zone == topCongestedList[5].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[6].Origin_Zone_Num || drawZones[i].zone == topCongestedList[6].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[7].Origin_Zone_Num || drawZones[i].zone == topCongestedList[7].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[8].Origin_Zone_Num || drawZones[i].zone == topCongestedList[8].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else if (drawZones[i].zone == topCongestedList[9].Origin_Zone_Num || drawZones[i].zone == topCongestedList[9].Destination_Zone_Num) {
-
-                    drawZones[i].setOptions({
-                        fillColor: "rgba(255,0,0,1)",
-                        strokeWeight: 4,
-                        strokeColor: 'black',
-                        fillOpacity: 1,
-                    });
-
-                } else {
-
+                else
                     drawZones[i].setOptions({
                         fillColor: "rgba(0,0,0,.03)",
                         strokeWeight: 0,
                         fillOpacity: 1,
                         zIndex: 0
                     });
-                    //console.log(drawZones[i].zone);
-                }
-
             }
 
-            button0.style.backgroundColor = 'lightgrey';
-            button1.style.backgroundColor = 'lightgrey';
-            button2.style.backgroundColor = 'lightgrey';
-            button3.style.backgroundColor = 'lightgrey';
-            button4.style.backgroundColor = 'lightgrey';
-            button5.style.backgroundColor = 'lightgrey';
-            button6.style.backgroundColor = 'lightgrey';
-            button7.style.backgroundColor = 'lightgrey';
-            button8.style.backgroundColor = 'lightgrey';
-            button9.style.backgroundColor = 'lightgrey';
-            controlUI.style.backgroundColor = 'red';
-            console.log("legend Show All Clicked");
+            resetTopTenBg();
+            controlUI.style.backgroundColor = topTenSelectedBg;
 
 
             let legend4 = document.createElement('div');
             legend4.id = 'legend4';
-            let content4 = [];
-            content4.push('<h3>Congestion Info</h3>');
-            content4.push("<p>Most Congested Origination Zone: " + topCongestedList[0].Origin_Zone_Num + ".</p>");
-            content4.push("<p>Most Congested Destination Zone: " + topCongestedList[0].Destination_Zone_Num + ".</p>");
-            content4.push("<p>Most Congested Total Trips: " + Math.ceil(topCongestedList[0].Count_Num) + ".</p>");
-            content4.push("<p>Trip Time: from " + topCongestedList[0].Time_Range_Str.from + " to " + topCongestedList[0].Time_Range_Str.to + ".</p>");
-            content4.push("<p> </p>");
-            content4.push("<p>Tenth Most Congested Origination Zone: " + topCongestedList[9].Origin_Zone_Num + ".</p>");
-            content4.push("<p>Tenth Most Congested Destination Zone: " + topCongestedList[9].Destination_Zone_Num + ".</p>");
-            content4.push("<p>Tenth Most Congested Total Trips: " + Math.ceil(topCongestedList[9].Count_Num) + ".</p>");
-            content4.push("<p>Trip Time: from " + topCongestedList[9].Time_Range_Str.from + " to " + topCongestedList[9].Time_Range_Str.to + ".</p>");
-            legend4.innerHTML = content4.join('');
+            legend4.innerHTML = `
+                <h3>Congestion Info</h3>
+                <p>Most Congested Origination Zone: ${topCongestedList[0].Origin_Zone_Num}</p>
+                <p>Most Congested Destination Zone: ${topCongestedList[0].Destination_Zone_Num}</p>
+                <p>Most Congested Total Trips: ${Math.ceil(topCongestedList[0].Count_Num)}</p>
+                <p>Trip Time: from ${topCongestedList[0].Time_Range_Str.from} to ${topCongestedList[0].Time_Range_Str.to}</p>
+                <p> </p>
+                <p>Tenth Most Congested Origination Zone: ${topCongestedList[9].Origin_Zone_Num}</p>
+                <p>Tenth Most Congested Destination Zone: ${topCongestedList[9].Destination_Zone_Num}</p>
+                <p>Tenth Most Congested Total Trips: ${Math.ceil(topCongestedList[9].Count_Num)}</p>
+                <p>Trip Time: from ${topCongestedList[9].Time_Range_Str.from} to ${topCongestedList[9].Time_Range_Str.to}</p>`;
+
             legend4.index = 1;
 
             // Create the legend and display on the map
-            if (map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].length < 1) {
-                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(legend4);
-            } else {
-                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].pop(legend4);
-                map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(legend4);
+            const control = map.controls[google.maps.ControlPosition.BOTTOM_RIGHT];
+            if (control.length >= 1) {
+                control.pop(legend4);
             }
+            control.push(legend4);
         });
 
         // Set CSS for the control border.
         let controlUI2 = document.createElement('div');
         controlUI2.id = "cleapMap";
-        controlUI2.style.backgroundColor = 'lightgrey';
+        controlUI2.style.backgroundColor = topTenBg;
         controlUI2.style.border = '3px solid black';
         controlUI2.style.borderRadius = '3px';
         controlUI2.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
@@ -844,9 +744,7 @@
                 map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].pop(legend4);
             }
 
-
             for (let i = 0; i < drawZones.length; i++) {
-
                 drawZones[i].setOptions({
                     strokeColor: "black",
                     strokeOpacity: 0.2,
@@ -854,23 +752,11 @@
                     fillColor: "green",
                     fillOpacity: 0.4
                 });
-
-
             }
 
-            button0.style.backgroundColor = 'lightgrey';
-            button1.style.backgroundColor = 'lightgrey';
-            button2.style.backgroundColor = 'lightgrey';
-            button3.style.backgroundColor = 'lightgrey';
-            button4.style.backgroundColor = 'lightgrey';
-            button5.style.backgroundColor = 'lightgrey';
-            button6.style.backgroundColor = 'lightgrey';
-            button7.style.backgroundColor = 'lightgrey';
-            button8.style.backgroundColor = 'lightgrey';
-            button9.style.backgroundColor = 'lightgrey';
-            buttonAll.style.backgroundColor = 'lightgrey';
-            controlUI2.style.backgroundColor = 'lightgrey';
-            console.log("legend clear map Clicked");
+            resetTopTenBg();
+            buttonAll.style.backgroundColor = topTenBg;
+            controlUI2.style.backgroundColor = topTenBg;
 
         });
 
@@ -946,7 +832,6 @@
                     }
                 } else {
                     if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
-                        console.log("limit reached");
                         setTimeout(function () {
                             calcRoute(zoneRoutes);
                         }, 300);
@@ -962,4 +847,10 @@
         }
 
     }
+
+    function resetTopTenBg() {
+        for (let i = 0; i < 10; i++)
+            document.getElementById(`button${i}`).style.backgroundColor = topTenBg;
+    }
+
 })();
