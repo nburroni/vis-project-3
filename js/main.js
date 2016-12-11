@@ -45,19 +45,7 @@
         function placeMarkers(results, status, pagination) {
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 for (var i = 0; i < results.length; i++) {
-                    // createMarker(results[i]);
-                    place = results[i];
-                    let marker = new google.maps.Marker({
-                        map: null,
-                        position: place.geometry.location
-                    });
-                    let name = places[currentPlaceIndex];
-                    if (!markers[name]) markers[name] = [];
-                    markers[name].push(marker);
-                    google.maps.event.addListener(marker, 'click', function() {
-                        infowindow.setContent(place.name);
-                        infowindow.open(map, this);
-                    });
+                    createMarker(results[i]);
                 }
             }
             if (pagination.hasNextPage) pagination.nextPage();
@@ -65,6 +53,20 @@
                 currentPlaceIndex++;
                 reqPlaces();
             }
+        }
+
+        function createMarker(place) {
+            let marker = new google.maps.Marker({
+                map: null,
+                position: place.geometry.location
+            });
+            let name = places[currentPlaceIndex];
+            if (!markers[name]) markers[name] = [];
+            markers[name].push(marker);
+            google.maps.event.addListener(marker, 'click', function() {
+                infowindow.setContent(place.name);
+                infowindow.open(map, this);
+            });
         }
     };
 

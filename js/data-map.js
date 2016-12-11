@@ -1,7 +1,3 @@
-/* TODO
-* Filter out larger outer zones
-* */
-
 (function () {
 
     const purposeKeys = {
@@ -15,6 +11,7 @@
         OO: 'Other to Other',
         WW: 'Work to Work'
     };
+    const zoneMax = 4000;
 
     /**
      *
@@ -32,6 +29,8 @@
         var loadCsv = function (num, loadFilters, filters) {
             loader.classed('hidden', false);
             d3.json("./data/json/holidays.json", function (err, holidays) {
+                let daysOfMonth = d3.map(holidays, h => h.dayOfMonth).keys();
+
                 d3.json("./data/json/zone-centers.json", function (err, centers) {
                     d3.json("./data/json/zones-geo.json", function (err, GEO_JSON) {
                         d3.csv(`./data/csv/${num}.csv`, function (err, data) {
@@ -67,7 +66,11 @@
                                         to: new Date(year, month, day, parseInt(timeRangeArray[1]))
                                     }
                                 }, d);
-                            });
+                            }).filter(d =>
+                                d.Origin_Zone_Num < zoneMax &&
+                                d.Destination_Zone_Num < zoneMax &&
+                                d.Purpose != 'WW'
+                            );
 
                             if (loadFilters) {
                                 let ranges = [];
@@ -134,6 +137,10 @@
                             let filtered = mapped;
                             let filteredGJ = GEO_JSON;
                             let filteredCenters = centers;
+
+                            filteredGJ.features = filteredGJ.features.filter(f => f.properties.TAZ_ID < zoneMax);
+                            filteredCenters = filteredCenters.filter(c => c.TAZ_ID < zoneMax);
+
                             if (filters) {
                                 if (filters.hours.length > 0)
                                     filtered = filtered.filter(d => filters.hours.includes(d.Time_Range.from));
