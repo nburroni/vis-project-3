@@ -72,6 +72,39 @@
                                 d.Purpose != 'WW'
                             );
 
+                            const partsOfDay = {
+                                Morning: { from: 5, to: 12 },
+                                Afternoon: { from: 12, to: 17 },
+                                Evening: { from: 17, to: 21 },
+                                Night: { from: 21, to: 4 }
+                            };
+                            let partOfDayMap = {};
+                            let summarized = [];
+                            Object.keys(partsOfDay).forEach(p => {
+                                const part = partsOfDay[p];
+                                let trips = {};
+                                partOfDayMap[p] = (part.from < part.to ?
+                                    mapped.filter(d => d.Time_Range.from >= part.from && d.Time_Range.to <= part.to) :
+                                    mapped.filter(d => d.Time_Range.from >= part.from || d.Time_Range.to <= part.to))
+                                    .sort((a, b) => a.Time_Range.from - b.Time_Range.to)
+                                    .forEach(d => {
+                                        d.Part_Of_Day = p;
+                                        let key = `${d.Origin_Zone_Clean}-${d.Destination_Zone_Clean}-${d.Subscriber_Class}`;
+                                        const trip = trips[key];
+                                        if (!trip) trips[key] = Object.assign({ Avg: { count: 1, total: d.Count_Num }}, d);
+                                        else {
+                                            trip.Avg.count++;
+                                            trip.Avg.total += d.Count_Num;
+                                        }
+                                    });
+                                Object.keys(trips).forEach(k => {
+                                    let t = trips[k];
+                                    t.Count_Num = t.Avg.total / t.Avg.count;
+                                    summarized.push(t);
+                                })
+                            });
+
+
                             if (loadFilters) {
                                 let ranges = [];
                                 mapped.forEach(d => ranges[d.Time_Range.from] = Object.assign({str: `${d.Time_Range_Str.from} to ${d.Time_Range_Str.to}`}, d.Time_Range));
@@ -132,6 +165,13 @@
                                     numberDisplayed: 1,
                                     nSelectedText: ' Counties'
                                 });
+
+                                d3.select('select#holiday').selectAll('option')
+                                    .data(holidays)
+                                    .enter()
+                                    .append('option')
+                                    .attr('value', d => d)
+                                    .html(d => `${d.name} (Apr ${d.dayOfMonth})`);
                             }
 
                             let filtered = mapped;
@@ -173,7 +213,6 @@
                             if (window.onDataReady) window.onDataReady({
                                 day: num,
                                 data: filtered,
-                                // topCongested: mapped.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10)
                                 topCongested: topCongested
                             }, filteredCenters, filteredGJ, holidays);
                             loader.classed('hidden', true);

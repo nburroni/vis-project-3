@@ -12,15 +12,19 @@
 <body>
 
     <div id="filters" class="form-inline">
-        <div class="filter day-of-month">
+        <div class="filter day-of-month hidden">
             <span>Day of Month</span>
             <select id="day-of-month" class="form-control"></select>
         </div>
-        <!--<div class="filter day-of-week">
-            &lt;!&ndash;<span>Day of Week</span>&ndash;&gt;
+        <div class="filter holiday">
+            <!--<span>Day</span>-->
+            <select id="holiday" class="form-control"></select>
+        </div>
+        <div class="filter day-of-week hidden">
+            <!--<span>Day of Week</span>-->
             <select id="day-of-week" class="form-control"></select>
-        </div>-->
-        <div class="filter hour-range">
+        </div>
+        <div class="filter hour-range hidden">
             <!--<span>Hours</span>-->
             <select id="hour-range" multiple="multiple"></select>
         </div>
@@ -28,11 +32,11 @@
             <!--<span>Subscriber</span>-->
             <select id="subscriber" multiple="multiple"></select>
         </div>
-        <div class="filter purpose">
+        <div class="filter purpose hidden">
             <!--<span>Purpose</span>-->
             <select id="purpose" multiple="multiple"></select>
         </div>
-        <div class="filter county">
+        <div class="filter county hidden">
             <!--<span>County</span>-->
             <select id="county" multiple="multiple"></select>
         </div>
