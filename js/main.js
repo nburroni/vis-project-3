@@ -119,8 +119,8 @@
         let outboundLegend = document.createElement('div');
         inboundLegend.id = 'inboundLegend';
         outboundLegend.id = 'outboundLegend';
-        inboundLegend.innerHTML = '<div class="trip-legend-title"><h3>Inbound Trips</h3></div>';
-        outboundLegend.innerHTML = '<div class="trip-legend-title"><h3>Outbound Trips</h3></div>';
+        // inboundLegend.innerHTML = '<div class="trip-legend-title"><h3>Inbound Trips</h3></div>';
+        // outboundLegend.innerHTML = '<div class="trip-legend-title"><h3>Outbound Trips</h3></div>';
 
         d3.range(1, 7).forEach(i => {
             let prev = Math.ceil((rangeMax / 6) * (i - 1));

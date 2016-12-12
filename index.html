@@ -4,77 +4,17 @@
     <meta charset="UTF-8">
     <title>Vis Project 3</title>
 
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	<link rel="stylesheet" type="text/css" href="css/bootstrap-multiselect.css">
-    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-	<link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+
 </head>
 <body>
+<div id="frame-btns">
+    <button id="add-frame" title="Add Frame">+</button>
+    <button id="remove-frame" title="Remove Frame">-</button>
+</div>
 
-    <div id="filters" class="form-inline">
-        <div class="filter day-of-month hidden">
-            <span>Day of Month</span>
-            <select id="day-of-month" class="form-control"></select>
-        </div>
-        <div class="filter holiday">
-            <!--<span>Day</span>-->
-            <select id="holiday" class="form-control"></select>
-        </div>
-        <div class="filter day-of-week hidden">
-            <!--<span>Day of Week</span>-->
-            <select id="day-of-week" class="form-control"></select>
-        </div>
-        <div class="filter hour-range hidden">
-            <!--<span>Hours</span>-->
-            <select id="hour-range" multiple="multiple"></select>
-        </div>
-        <div class="filter subscriber hidden">
-            <!--<span>Subscriber</span>-->
-            <select id="subscriber" multiple="multiple"></select>
-        </div>
-        <div class="filter purpose hidden">
-            <!--<span>Purpose</span>-->
-            <select id="purpose" multiple="multiple"></select>
-        </div>
-        <div class="filter county hidden">
-            <!--<span>County</span>-->
-            <select id="county" multiple="multiple"></select>
-        </div>
-        <div class="filter markers">
-            <!--<span>Day</span>-->
-            <select id="markers" class="form-control"></select>
-        </div>
-        <!--<div class="filter apply">Apply</div>-->
-        <div class="filter right">
-            <input id="in-out-bound" type="checkbox" data-toggle="toggle" data-on="Outbound" data-off="Inbound">
-            <button id="clear-btn" class="btn btn-primary">Clear Selection</button>
-        </div>
-    </div>
-    <div class="toggle-filters hidden">
-        <input id="dark-mode" type="checkbox" data-toggle="toggle" data-on="Night Mode" data-off="Day Mode">
-    </div>
-    <div id="map"></div>
+<iframe src="map.html" class="map-iframe"></iframe>
 
-    <div id="loader">
-        <div class="blob blob-0"></div>
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-        <div class="blob blob-4"></div>
-        <div class="blob blob-5"></div>
-    </div>
 </body>
-
-      <!-- Loading all script file -->
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDzf8KmxU-2kd1SM8UVuMPot58toYj8as&libraries=places&callback=initMap" async defer></script>
-<script src = "js/bootstrap-multiselect.js"></script>
-<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-<script src = "js/map-styles.js"></script>
-<script src = "js/centers.js"></script>
-<script src = "js/main.js"></script>
-<script src = "js/data-map.js"></script>
-
+<script src="js/index.js"></script>
 </html>
