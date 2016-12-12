@@ -15,11 +15,6 @@
     "type": "Catholic"
   },
   {
-    "name": "Passover (Start)",
-    "dayOfMonth": 15,
-    "type": "Jewish"
-  },
-  {
     "name": "Holy Thursday",
     "dayOfMonth": 17,
     "type": "Catholic"
@@ -40,18 +35,8 @@
     "type": "US"
   },
   {
-    "name": "Passover (End)",
-    "dayOfMonth": 22,
-    "type": "Jewish"
-  },
-  {
     "name": "Administrative Professionals",
     "dayOfMonth": 23,
-    "type": "US"
-  },
-  {
-    "name": "Arbor Day",
-    "dayOfMonth": 25,
     "type": "US"
   },
   {

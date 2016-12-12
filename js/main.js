@@ -17,9 +17,13 @@
     let topCongestedList = {};
     let closeInfoWindow = false;
     let markers = {};
+    let maxZoneNum = 1267;
+    window.places = ['catholic churches', 'jewish temples', 'attractions'];
 
-    let color_range = d3.scaleLinear().domain([0, 15000]).range(["rgba(253,187,132,.8)", "rgba(127,0,0,.8)"]);
-    let color_range2 = d3.scaleLinear().domain([0, 15000]).range(["rgba(250,159,181,.8)", "rgba(73,0,106,.8)"]);
+    const rangeMin = 0;
+    const rangeMax = 500;
+    let color_range = d3.scaleLinear().domain([rangeMin, rangeMax]).range(["rgba(253,187,132,.8)", "rgba(127,0,0,.8)"]);
+    let color_range2 = d3.scaleLinear().domain([rangeMin, rangeMax]).range(["rgba(250,159,181,.8)", "rgba(73,0,106,.8)"]);
     let moused = false;
 
     let drawZones = [];
@@ -29,7 +33,6 @@
 
     let fillMarkers = () => {
         infowindow = new google.maps.InfoWindow();
-        const places = ['catholic church', 'jewish temple', 'attraction'];
         let currentPlaceIndex = 0;
 
         let reqPlaces = () => {
@@ -52,7 +55,7 @@
             else if (currentPlaceIndex + 1 < places.length) {
                 currentPlaceIndex++;
                 reqPlaces();
-            }
+            } else d3.select('#loader').classed('hidden', true);
         }
 
         function createMarker(place) {
@@ -125,7 +128,9 @@
         window.onDataReady = function (data, centers, GEO_JSON, holidays) {
             clickedZone = undefined;
             topCongestedList = data.topCongested;
-            let max = Math.ceil(topCongestedList[0].Count_Num);
+            // maxZoneNum = d3.max(centers, c => c.TAZ_ID);
+
+            let max = rangeMax;
             let num1 = Math.ceil((max / 6));
             let num2 = Math.ceil((max / 6) * 2);
             let num3 = Math.ceil((max / 6) * 3);
@@ -305,12 +310,13 @@
 
                                 if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
 
-                                    if (data.data[i].Origin_Zone - 1 < 1267) {
+                                    if (data.data[i].Origin_Zone - 1 < maxZoneNum) {
 
-                                        drawZones[data.data[i].Origin_Zone - 1].setColorValue += Number(data.data[i].Count);
-                                        zoneColor = drawZones[data.data[i].Origin_Zone - 1].setColorValue;
-                                        drawZones[data.data[i].Origin_Zone - 1].setOptions({
-                                            fillColor: color_range(drawZones[data.data[i].Origin_Zone - 1].setColorValue),
+                                        const dz = drawZones[data.data[i].Origin_Zone - 1];
+                                        dz.setColorValue += Number(data.data[i].Count);
+                                        zoneColor = dz.setColorValue;
+                                        dz.setOptions({
+                                            fillColor: color_range(dz.setColorValue),
                                             strokeWeight: 2.0,
                                             fillOpacity: 1
                                         });
@@ -371,7 +377,7 @@
 
                             for (let i = 0; i < data.data.length; i++) {
                                 if (data.data[i].Origin_Zone == value.properties.OBJECTID_1) {
-                                    if (data.data[i].Destination_Zone - 1 < 1267) {
+                                    if (data.data[i].Destination_Zone - 1 < maxZoneNum) {
                                         drawZones[data.data[i].Destination_Zone - 1].setColorValue += Number(data.data[i].Count);
                                         zoneColor = drawZones[data.data[i].Destination_Zone - 1].setColorValue;
                                         drawZones[data.data[i].Destination_Zone - 1].setOptions({
@@ -513,10 +519,10 @@
             let centerControl = new CenterControl(legend3, map);
 
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
-
+            if (Object.keys(markers).length > 0) d3.select('#loader').classed('hidden', true);
 
         }
-    }
+    };
 
 
     /********************************************************************************************

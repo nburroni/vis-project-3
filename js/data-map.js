@@ -25,11 +25,11 @@
         }
         let zoneCounties = {};
         zonesGeo.features.forEach(f => zoneCounties[f.properties.TAZ_ID] = f.properties.COUNTY.charAt(0) + f.properties.COUNTY.substring(1).toLowerCase());
+        d3.json("./data/json/holidays.json", function (err, holidays) {
+            let daysOfMonth = d3.map(holidays, h => h.dayOfMonth).keys().map(d => parseInt(d));
 
-        var loadCsv = function (num, loadFilters, filters) {
-            loader.classed('hidden', false);
-            d3.json("./data/json/holidays.json", function (err, holidays) {
-                let daysOfMonth = d3.map(holidays, h => h.dayOfMonth).keys();
+            var loadCsv = function (num, loaded, loadFilters, filters) {
+                loader.classed('hidden', false);
 
                 d3.json("./data/json/zone-centers.json", function (err, centers) {
                     d3.json("./data/json/zones-geo.json", function (err, GEO_JSON) {
@@ -51,6 +51,7 @@
                                 let month = parseInt(d.Start_Date.substring(4, 6)) - 1;
                                 let day = parseInt(d.Start_Date.substring(6, 8));
                                 return Object.assign({
+                                    Day_Of_Month: num,
                                     Origin_Zone_Clean: originStr,
                                     Destination_Zone_Clean: destStr,
                                     Origin_Zone_Num: parseInt(originStr),
@@ -73,10 +74,10 @@
                             );
 
                             const partsOfDay = {
-                                Morning: { from: 5, to: 12 },
-                                Afternoon: { from: 12, to: 17 },
-                                Evening: { from: 17, to: 21 },
-                                Night: { from: 21, to: 4 }
+                                Morning: {from: 5, to: 12},
+                                Afternoon: {from: 12, to: 17},
+                                Evening: {from: 17, to: 21},
+                                Night: {from: 21, to: 4}
                             };
                             let partOfDayMap = {};
                             let summarized = [];
@@ -89,9 +90,9 @@
                                     .sort((a, b) => a.Time_Range.from - b.Time_Range.to)
                                     .forEach(d => {
                                         d.Part_Of_Day = p;
-                                        let key = `${d.Origin_Zone_Clean}-${d.Destination_Zone_Clean}-${d.Subscriber_Class}`;
+                                        let key = `${d.Origin_Zone_Clean}-${d.Destination_Zone_Clean}`/*-${d.Subscriber_Class}`*/;
                                         const trip = trips[key];
-                                        if (!trip) trips[key] = Object.assign({ Avg: { count: 1, total: d.Count_Num }}, d);
+                                        if (!trip) trips[key] = Object.assign({Avg: {count: 1, total: d.Count_Num}}, d);
                                         else {
                                             trip.Avg.count++;
                                             trip.Avg.total += d.Count_Num;
@@ -107,7 +108,7 @@
 
                             if (loadFilters) {
                                 let ranges = [];
-                                mapped.forEach(d => ranges[d.Time_Range.from] = Object.assign({str: `${d.Time_Range_Str.from} to ${d.Time_Range_Str.to}`}, d.Time_Range));
+                                mapped.forEach(d => ranges[d.Time_Range.from] = Object.assign({ str: `${d.Time_Range_Str.from} to ${d.Time_Range_Str.to}` }, d.Time_Range));
                                 while (!ranges[0]) ranges.shift();
                                 d3.select('#hour-range').selectAll('option').remove()
                                     .data(ranges).enter()
@@ -166,12 +167,52 @@
                                     nSelectedText: ' Counties'
                                 });
 
-                                d3.select('select#holiday').selectAll('option')
+                                const holidaySelect = d3.select('select#holiday');
+                                holidaySelect.selectAll('option')
                                     .data(holidays)
                                     .enter()
                                     .append('option')
+                                    .attr('value', d => d.name)
+                                    .html(d => `Apr ${d.dayOfMonth} - ${d.name}`);
+                                holidaySelect.on('change', function(event) {
+                                    const selectedName = this.value;
+                                    const holiday = holidays.find(h => h.name == selectedName);
+                                    loadCsv(holiday.dayOfMonth);
+                                });
+
+                                const markerSelect = d3.select('select#markers');
+                                markerSelect.selectAll('option')
+                                    .data(['none'].concat(places))
+                                    .enter()
+                                    .append('option')
                                     .attr('value', d => d)
-                                    .html(d => `${d.name} (Apr ${d.dayOfMonth})`);
+                                    .html(d => d.charAt(0).toUpperCase() + d.substring(1));
+                                markerSelect.on('change', function(event) {
+                                    if (this.value == 'none') hideMarkers();
+                                    else showMarkers(this.value);
+                                });
+
+                                d3.select('select#day-of-month').selectAll('option')
+                                    .data(d3.range(1, 31))
+                                    .enter()
+                                    .append('option')
+                                    .attr('value', d => d)
+                                    .html(d => d);
+                                d3.select(`select#day-of-month option[value="${num}"]`).attr("selected", "");
+
+                                d3.select('#filters .apply').on('click', function () {
+                                    var getValues = function (id) {
+                                        return $(`#${id} option:selected`).toArray().map(o => o.value);
+                                    };
+
+                                    loadCsv(parseInt(document.getElementById('day-of-month').value), loaded, false, {
+                                        hours: getValues('hour-range').map(h => parseInt(h)),
+                                        subscribers: getValues('subscriber'),
+                                        purposes: getValues('purpose'),
+                                        counties: getValues('county')
+                                    })
+                                })
+
                             }
 
                             let filtered = mapped;
@@ -210,42 +251,24 @@
                                 if (temp.hasOwnProperty(k) && temp[k].Count_Num) topCongested.push(temp[k]);
                             topCongested = topCongested.sort((a, b) => b.Count_Num - a.Count_Num).slice(0, 10);
 
-                            if (window.onDataReady) window.onDataReady({
-                                day: num,
-                                data: filtered,
-                                topCongested: topCongested
-                            }, filteredCenters, filteredGJ, holidays);
-                            loader.classed('hidden', true);
+                            // if (dayIndex < daysOfMonth.length - 1) loadCsv(daysOfMonth[++dayIndex], loaded.concat(mapped));
+                            /*else*/ if (window.onDataReady) {
+                                window.onDataReady({
+                                    day: num,
+                                    data: filtered,
+                                    topCongested: topCongested
+                                }, filteredCenters, filteredGJ, holidays);
+                            }
 
                         });
 
-                        d3.select('select#day-of-month').selectAll('option')
-                            .data(d3.range(1, 31))
-                            .enter()
-                            .append('option')
-                            .attr('value', d => d)
-                            .html(d => d);
-                        d3.select(`select#day-of-month option[value="${num}"]`).attr("selected", "");
-
-                        d3.select('#filters .apply').on('click', function () {
-                            var getValues = function (id) {
-                                return $(`#${id} option:selected`).toArray().map(o => o.value);
-                            };
-
-                            loadCsv(parseInt(document.getElementById('day-of-month').value), false, {
-                                hours: getValues('hour-range').map(h => parseInt(h)),
-                                subscribers: getValues('subscriber'),
-                                purposes: getValues('purpose'),
-                                counties: getValues('county')
-                            })
-                        })
-
                     });
                 });
-            });
-        };
+            };
 
-        loadCsv(1, true);
+            var dayIndex = 0;
+            loadCsv(daysOfMonth[dayIndex], [], true);
+        });
     });
 
 })();
