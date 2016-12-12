@@ -4,9 +4,11 @@ html, body {
     padding: 0;
     font-family: Arial, sans-serif;
 }
+
 .hidden {
     display: none;
 }
+
 #map {
     height: 100%;
 }
@@ -23,116 +25,129 @@ html, body {
 }
 
 #legend img {
-        vertical-align: middle;
-      }
-	  
-#legend2 {
-        font-family: Arial, sans-serif;
-        background: #fff;
-        padding: 10px;
-        margin: 10px;
-        border: 3px solid #000;
+    vertical-align: middle;
 }
+
+#legend2 {
+    font-family: Arial, sans-serif;
+    background: #fff;
+    padding: 10px;
+    margin: 10px;
+    border: 3px solid #000;
+}
+
 #legend2 h3 {
-        margin-top: 0;
+    margin-top: 0;
 }
 
 #legend2 img {
-        vertical-align: middle;
-      }
+    vertical-align: middle;
+}
 
 #legend3 {
-        font-family: Arial, sans-serif;
-        background: #fff;
-        padding: 10px;
-        margin: 10px;
-        border: 3px solid #000;
+    font-family: Arial, sans-serif;
+    background: #fff;
+    padding: 10px;
+    margin: 10px;
+    border: 3px solid #000;
 }
+
 #legend3 h3 {
-        margin-top: 0;
+    margin-top: 0;
 }
 
 #legend3 img {
-        vertical-align: middle;
-      }
-	  
-	  #legend4 {
-        font-family: Arial, sans-serif;
-		font-Size: 14px;
-        background: #fff;
-        padding: 10px;
-        margin: 10px;
-        border: 3px solid #000;
+    vertical-align: middle;
 }
+
+#legend4 {
+    font-family: Arial, sans-serif;
+    font-Size: 14px;
+    background: #fff;
+    padding: 10px;
+    margin: 10px;
+    border: 3px solid #000;
+}
+
 #legend4 h3 {
-        margin-top: 0;
+    margin-top: 0;
 }
 
 #legend4 img {
-        vertical-align: middle;
-      }
+    vertical-align: middle;
+}
 
 .color {
-        border: 1px solid;
-        height: 12px;
-        width: 12px;
-        margin-right: 3px;
-        float: left;
-      }
+    display: inline-block;
+    padding: 10px 20px;
+    color: white;
+    font-size: 14px;
+}
 
 .color1 {
-        background: #fdbb84;
-      }
+    background: #fdbb84;
+    color: black;
+}
 
 .color2 {
-        background: #fc8d59;
-      }
+    background: #fc8d59;
+    color: black;
+}
 
 .color3 {
-        background: #ef6548;
-      }
+    background: #ef6548;
+}
 
 .color4 {
-        background: #d7301f;
-      }
+    background: #d7301f;
+}
 
 .color5 {
-        background: #b30000;
-      }
+    background: #b30000;
+}
 
 .color6 {
-        background: #7f0000;
-      }
+    background: #7f0000;
+}
 
 .color7 {
-        background: #fa9fb5;
-      }
+    background: #fa9fb5;
+    color: black;
+}
 
 .color8 {
-        background: #f768a1;
-      }
+    background: #f768a1;
+    color: black;
+}
 
 .color9 {
-        background: #dd3497;
-      }
+    background: #dd3497;
+}
 
 .color10 {
-        background: #ae017e;
-      }
+    background: #ae017e;
+}
 
 .color11 {
-        background: #7a0177;
-      }
+    background: #7a0177;
+}
 
 .color12 {
-        background: #49006a;
-      }
+    background: #49006a;
+}
 
 .color13 {
-        background: black;
+    background: black;
 }
+
 .purple {
     background: #63C;
+}
+
+.trip-legend-title h3 {
+    margin: 0;
+    padding: 5px 10px;
+    background-color: rgba(255, 255, 255, .55);
 }
 
 /* FILTERS */
@@ -149,16 +164,27 @@ html, body {
     border-radius: 7px;
     padding: 0 10px;
 }
-#filters .filter, #filters .btn.toggle {
+
+#filters .filter /*, #filters .btn.toggle*/
+{
     display: inline-block;
     position: relative;
     top: 50%;
     transform: translateY(-50%);
 }
+
 #filters .btn.toggle {
-    float: right;
     border: none;
 }
+
+.right {
+    float: right;
+}
+
+.right > * {
+    display: inline-block;
+}
+
 .toggle-filters {
     position: fixed;
     bottom: 3%;
@@ -168,22 +194,28 @@ html, body {
     border-radius: 5px;
     padding: 5px;
 }
+
 #in-out-bound + .toggle-group .toggle-handle {
     /*background-color: #373737;*/
 }
+
 #in-out-bound + .toggle-group * {
     color: white !important;
     border: none !important;
 }
+
 #in-out-bound + .toggle-group .toggle-off {
     background-color: #692700;
 }
+
 #in-out-bound + .toggle-group .toggle-on {
     background-color: #69005a;
 }
+
 #dark-mode + .toggle-group .toggle-on {
     background-color: #123a5d;
 }
+
 #filters .apply {
     float: right;
     background-color: #bef0b5;
@@ -191,12 +223,15 @@ html, body {
     padding: 10px 20px;
     cursor: pointer;
 }
+
 #filters .apply:hover {
     background-color: #b4e6ae;
 }
+
 #filters .apply:active {
     background-color: #acdc9e;
 }
+
 /* END FILTERS */
 
 /* LODAER */
@@ -274,6 +309,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @-webkit-keyframes animate-to-3 {
     25%,
     75% {
@@ -285,6 +321,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @keyframes animate-to-3 {
     25%,
     75% {
@@ -296,6 +333,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @-webkit-keyframes animate-to-1 {
     25% {
         -webkit-transform: translateX(-1.5rem) scale(0.75);
@@ -311,6 +349,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @keyframes animate-to-1 {
     25% {
         -webkit-transform: translateX(-1.5rem) scale(0.75);
@@ -326,6 +365,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @-webkit-keyframes animate-to-4 {
     25% {
         -webkit-transform: translateX(1.5rem) scale(0.75);
@@ -341,6 +381,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @keyframes animate-to-4 {
     25% {
         -webkit-transform: translateX(1.5rem) scale(0.75);
@@ -356,6 +397,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @-webkit-keyframes animate-to-0 {
     25% {
         -webkit-transform: translateX(-1.5rem) scale(0.75);
@@ -374,6 +416,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @keyframes animate-to-0 {
     25% {
         -webkit-transform: translateX(-1.5rem) scale(0.75);
@@ -392,6 +435,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @-webkit-keyframes animate-to-5 {
     25% {
         -webkit-transform: translateX(1.5rem) scale(0.75);
@@ -410,6 +454,7 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 @keyframes animate-to-5 {
     25% {
         -webkit-transform: translateX(1.5rem) scale(0.75);
@@ -428,4 +473,5 @@ html, body {
         transform: translateX(0rem) scale(1);
     }
 }
+
 /* END LODAER */
