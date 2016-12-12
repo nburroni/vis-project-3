@@ -39,6 +39,9 @@ We used Google Maps API to perform search based on terms such as "attractions", 
 ### The Visualization
 ![Dashboard](samples/general1.png)
 
+#### Detailed Description
+The visualization starts showing colored zones. The color intensity represents the total amount of inbound or outbound trips corresponding to each zone. The user can switch between inbound or outbound view by clicking on the toggle present at the top right. The user can click on a specific zone, which will cause it to be selected and show only the zones which have trips to (inbound) or from (outbound) that zone. Once again, the color intensity represents the amount of trips that correspond. A legend will appear on the bottom to provide a more detailed reference on the color scale. When a zone is selected, if the user hovers over another colored zone, the recommended route by Google Maps will be drawn on the map. The user can then click on the hovered zone to keep the route drawn. If clicked again, the route will disappear. To go back to the initial state, the user may click again on the selected zone, or click on the button with the label "Clear Selection". The user can select an overlay with markers showing different points of interest, such as attractions, churches, temples or malls. Clicking on a marker will show an info window with the name of that point of interest. The user can select a different holiday or average day. More map frames can be added or removed for comparison by clicking on the plus or minus signs which are placed at the right of the screen at first, and placed at the center when more than one frame is present. Each frame acts independently of each other, to provide freedom to the user to be able to choose the specific data they want to compare.
+
 #### [Click to watch video](https://youtu.be/8gy5Otlwdjo)
 [![Project Video](https://img.youtube.com/vi/8gy5Otlwdjo/0.jpg)](https://youtu.be/8gy5Otlwdjo)
 
