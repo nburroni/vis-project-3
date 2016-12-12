@@ -31,6 +31,11 @@ This dataset provided information about holidays in the US during the month of A
 ##### Supplemental Points of Interest Data
 We used Google Maps API to perform search based on terms such as "attractions", "catholic churches", "jewish temples" and "malls", which provided us with the results shown with markers.
 
+#### Interesting Results Found
+* The zones where the Disney parks are located have the most amount of inbound trips
+* High-level travel patterns look very similar between days; zones tend to maintain the amount of inbound trips they have
+* Zones containing malls usually see an increase in inbound trips during weekends
+
 ### The Visualization
 ![Dashboard](samples/general1.png)
 
@@ -53,31 +58,26 @@ The user can add to up to four maps to compare data
 
 #### Visualization Tasks
 ##### Analyze
-Our visualization achieves the task of analyzing the data. More in particular, the user can consume the data shown in the visualizations. This data already existed, but it was processed so the user can discover, present or enjoy. He/she may be interested in showing people the actual panorama of flight delays, or it may be in his/her interest to analyze the data in order to know more about a yet not understood aspect of flight itineraries. 
+Our visualization achieves the task of analyzing the data. More in particular, the user can consume the data shown in the visualizations. This data already existed, but it was processed so the user can discover, present or enjoy. It may be in his/her interest to analyze the data in order to know more about a yet not understood aspect of travel patterns within Orlando. 
 ##### Discover
-Users can discover new information, mainly through the week and weather visualizations. For example, if wanting to prove a theory which states that flights in the afternoon usually get more delays, the week visualization would help to discover that that theory is true.
+Users can discover new information. For example, if wanting to prove a theory which states that zones with malls usually get more crowded during weekends, the tools provided by the visualization would help to discover that that theory is true.
 ##### Present
-A user may want to present to others something already known. For example, using the link map visualization, the user may present to others all the connections between cities. It’s important to say that in this case, the knowledge communicated is already known by the recipient. Interaction is also important while presenting the data. The user may hover over an airport in order to emphasize on the links of that particular airport.
+A user may want to present to others something already known. For example, the user may present to others how during an average weekday people commute from the suburbs to the city. It’s important to say that in this case, the knowledge communicated is already known by the recipient. Interaction is also important while presenting the data. The user may hover over a zone in order to show the route Google Maps recommends, which most likely will be the most used.
 ##### Enjoy
-Users that don’t form part of the target audience can enjoy the visualization. Many people, although they don’t have any discovering or presenting purpose while using the vis, can use it simply to learn about the US flight system, or just play around with the flights. 
+Users that don’t form part of the target audience can enjoy the visualization. Many people, although they don’t have any discovering or presenting purpose while using the vis, can use it simply to learn about travel patterns within Orlando, or just play around with the zones and routes. 
 ##### Lookup
-This task may be one of the most influential in our visualizations. If a user already knows which airport he/she wants to look into, they just have to remember where it is located geographically, and will get all the delay information from there.
-##### Derive
-In order to make the week visualization, we had to go over some transformations over the dataset. We went from a list of flights to the delays depending of the hour and the day of the week. This shows a clear derivation from the original data. The same can be seen in the weather visualization, where the average weather delay was calculated using the list of flights, and then displayed using a color scale.
+This task may be one of the most influential in our visualization. If a user already knows which zone he/she wants to look into, they just have to remember where it is located geographically, and will get all the travel information from there.
 ##### Browse
-In other cases, the user doesn’t know exactly what he/she wants. Keeping up with the last example, the user may use the airport filter in order to see in the map only the selected airports. 
+In other cases, the user doesn’t know exactly what he/she wants. Keeping up with the last example, the user may use the holiday filter in order to see in the map the selected holiday, and they may also select an overlay showing points of interest to help browse. 
 ##### Compare
-By selecting different month options, the user can compare between them. This has only one disadvantage, and is the fact that the two visualizations can’t be seen simultaneously. The user can also compare delays and weather events by hovering on the week’s visualization hours. This also gives the ability to compare between different times of the day, and also between different days of the week. 
-Another clear example of comparison can be seen in the weather visualization. Here, the user can compare the relation between weather events like tornadoes or lightning, and the delay airports experience at the same time. 
+By adding more map frames and selecting different holidays and/or overlays, the user can compare between them. By having multiple frames, the visualizations can be compared side by side to clearly see the differences.
 ##### Summarize
-These visualizations include highly dense data-sets, so we had to make sure that we didn’t go too specific in the data we were showing, in order to grant the user the possibility to give an overview of the situation. This is why we made averages of the data monthly, so the user can get general insight for every month. Nevertheless, we left friendly interactions for the user to quickly filter the data shown and get more detailed results.
+These visualizations include highly dense data-sets, so we had to make sure that we didn’t go too specific in the data we were showing, in order to grant the user the possibility to give an overview of the situation. This is why we made averages of the data daily, so the user can get general insight for every day we present.
 #### Interactive Techniques
-##### Animation
-We include animations on load and when the user hovers or clicks on items to provide a smooth experience
 ##### Select Elements
-The user may select airports or different hours to visualize those selected in specific. Hovering also removes clutter and focuses the view on what the user is hovering over by highlighting related items.
+The user may select zones or different points of interest to visualize those selected in specific. Hovering over a zone after having selecting another zone reveals the recommended route between the two.
 ##### Navigate
-The user can zoom and pan the map visualizations to provide greater detail. The user is unconstrained as in they can zoom and pan freely on the maps.
+The user can zoom and pan the map visualization to provide greater detail. The user is unconstrained as in they can zoom and pan freely on the map.
 
 
 ### How To Run
