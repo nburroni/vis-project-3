@@ -140,19 +140,24 @@ html, body {
     position: fixed;
     top: 2%;
     left: 2.5%;
+    right: 2.5%;
     z-index: 1000;
-    width: 75%;
-    background: #f7f7f7;
+    /*width: 75%;*/
+    background: #d2d2d2;
     height: 56px;
     border: solid #a2a2a2 1pt;
     border-radius: 7px;
     padding: 0 10px;
 }
-#filters .filter {
+#filters .filter, #filters .btn.toggle {
     display: inline-block;
     position: relative;
     top: 50%;
     transform: translateY(-50%);
+}
+#filters .btn.toggle {
+    float: right;
+    border: none;
 }
 .toggle-filters {
     position: fixed;
@@ -163,13 +168,18 @@ html, body {
     border-radius: 5px;
     padding: 5px;
 }
+#in-out-bound + .toggle-group .toggle-handle {
+    /*background-color: #373737;*/
+}
+#in-out-bound + .toggle-group * {
+    color: white !important;
+    border: none !important;
+}
 #in-out-bound + .toggle-group .toggle-off {
-    background-color: #a1d765;
+    background-color: #692700;
 }
 #in-out-bound + .toggle-group .toggle-on {
-    background-color: #5cd7aa;
-    color: #000;
-    border-color: #adadad;
+    background-color: #69005a;
 }
 #dark-mode + .toggle-group .toggle-on {
     background-color: #123a5d;

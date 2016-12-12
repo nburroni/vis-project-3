@@ -1,7 +1,7 @@
 /* TODO Bugs
-* Click on a zone, clear map, click on a top ten item, routes for the previously selected zone still show
-*
-* */
+ * Click on a zone, clear map, click on a top ten item, routes for the previously selected zone still show
+ *
+ * */
 
 (function () {
     let map;
@@ -22,8 +22,11 @@
 
     const rangeMin = 0;
     const rangeMax = 500;
-    let color_range = d3.scaleLinear().domain([rangeMin, rangeMax]).range(["rgba(253,187,132,.8)", "rgba(127,0,0,.8)"]);
-    let color_range2 = d3.scaleLinear().domain([rangeMin, rangeMax]).range(["rgba(250,159,181,.8)", "rgba(73,0,106,.8)"]);
+    let colorScaleInbound = d3.scaleLinear().domain([rangeMin, rangeMax]).range(["rgba(253,187,132,.8)", "rgba(127,0,0,.8)"]);
+    let colorScaleOutbound = d3.scaleLinear().domain([rangeMin, rangeMax]).range(["rgba(250,159,181,.8)", "rgba(73,0,106,.8)"]);
+    let colorScaleInboundTotal = d3.scaleLinear().domain([rangeMin, rangeMax * 30]).range(["rgba(253,187,132,.8)", "rgba(127,0,0,.8)"]);
+    let colorScaleOutboundTotal = d3.scaleLinear().domain([rangeMin, rangeMax * 30]).range(["rgba(250,159,181,.8)", "rgba(73,0,106,.8)"]);
+    let zoneTotalColors = {};
     let moused = false;
 
     let drawZones = [];
@@ -66,7 +69,7 @@
             let name = places[currentPlaceIndex];
             if (!markers[name]) markers[name] = [];
             markers[name].push(marker);
-            google.maps.event.addListener(marker, 'click', function() {
+            google.maps.event.addListener(marker, 'click', function () {
                 infowindow.setContent(place.name);
                 infowindow.open(map, this);
             });
@@ -120,12 +123,121 @@
             map.mapTypes.set('styled_map', new google.maps.StyledMapType(this.checked ? darkMapJson : silverMapJson));
         });
 
-        $('input#in-out-bound').change(function () {
-            window.direction = this.checked ? 'outbound' : 'inbound';
-        });
-
 
         window.onDataReady = function (data, centers, GEO_JSON, holidays) {
+            let selectZone = (clickedZoneId) => {
+                let drawZone = drawZones.find(dz => dz.zone == clickedZoneId);
+                drawZones.forEach(dz =>
+                    dz.setOptions({
+                        fillColor: "rgba(0,0,0,.01)",
+                        strokeWeight: 0,
+                        fillOpacity: 1,
+                        zIndex: 0
+                    })
+                );
+                let legendToMove;
+                if (direction == 'inbound') {
+                    let inbound = {};
+                    data.data.filter(d => d.Destination_Zone_Num == clickedZoneId).forEach(d => {
+                        if (!inbound[d.Origin_Zone_Clean]) inbound[d.Origin_Zone_Clean] = 0;
+                        inbound[d.Origin_Zone_Clean] += d.Count_Num;
+                    });
+                    Object.keys(inbound).forEach(originId => {
+                        drawZones.find(dz => dz.zone == originId).setOptions({
+                            fillColor: colorScaleInbound(inbound[originId]),
+                            strokeWeight: 2.0,
+                            fillOpacity: 1
+                        })
+                    });
+                    legendToMove = legend;
+                } else {
+                    let outbound = {};
+                    data.data.filter(d => d.Origin_Zone_Num == clickedZoneId).forEach(d => {
+                        if (!outbound[d.Destination_Zone_Clean]) outbound[d.Destination_Zone_Clean] = 0;
+                        outbound[d.Destination_Zone_Clean] += d.Count_Num;
+                    });
+                    Object.keys(outbound).forEach(destId => {
+                        drawZones.find(dz => dz.zone == destId).setOptions({
+                            fillColor: colorScaleOutbound(outbound[destId]),
+                            strokeWeight: 2.0,
+                            fillOpacity: 1
+                        })
+                    });
+                    legendToMove = legend2;
+                }
+
+                // Create the legend and display on the map
+                const rightBottom = google.maps.ControlPosition.RIGHT_BOTTOM;
+                if (map.controls[rightBottom].length < 1) {
+                    map.controls[rightBottom].push(legendToMove);
+                } else {
+                    map.controls[rightBottom].pop();
+                    map.controls[rightBottom].push(legendToMove);
+                }
+
+                drawZone.setOptions({
+                    fillColor: "green",
+                    strokeWeight: 2.0,
+                    fillOpacity: 0.3
+                });
+            };
+            let clearSelection = function () {
+                for (let i = 0; i < drawZones.length; i++) {
+                    drawZones[i].setOptions({
+                        fillColor: getZoneColor(drawZones[i].zone),
+                        strokeWeight: 1.5,
+                        fillOpacity: 1
+                    });
+                }
+
+                if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length > 0) {
+                    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
+                }
+
+                directionsDisplays.forEach((d) => {
+                    d.setDirections({
+                        routes: []
+                    });
+                });
+                clickedZone = undefined;
+            };
+            let getZoneColor = (zoneId, dir = direction) => {
+                if (!zoneTotalColors[zoneId]) zoneTotalColors[zoneId] = {};
+                if (dir == 'inbound') {
+                    if (!zoneTotalColors[zoneId].inbound) {
+                        const count = data.data.filter(d => d.Destination_Zone_Num == zoneId).map(d => d.Count_Num);
+                        const avg = count.reduce((a, b) => a + b, 0);
+                        zoneTotalColors[zoneId].inbound = colorScaleInboundTotal(avg);
+                    }
+                    return zoneTotalColors[zoneId].inbound;
+                } else {
+                    if (!zoneTotalColors[zoneId].outbound) {
+                        const count = data.data.filter(d => d.Origin_Zone_Num == zoneId).map(d => d.Count_Num);
+                        const avg = count.reduce((a, b) => a + b, 0);
+                        zoneTotalColors[zoneId].outbound = colorScaleOutboundTotal(avg);
+                    }
+                    return zoneTotalColors[zoneId].outbound;
+                }
+            };
+            let calculateColors = () => {
+                drawZones.forEach(dz => getZoneColor(dz.zone, 'inbound'));
+                drawZones.forEach(dz => getZoneColor(dz.zone, 'outbound'));
+            };
+            let recolorZones = () => {
+                let recycled;
+                if (clickedZone) recycled = clickedZone;
+                clearSelection();
+                if (recycled) {
+                    clickedZone = recycled;
+                    selectZone(recycled.TAZ_ID);
+                }
+            };
+
+            $('input#in-out-bound').change(function () {
+                window.direction = this.checked ? 'outbound' : 'inbound';
+                recolorZones();
+            });
+
             clickedZone = undefined;
             topCongestedList = data.topCongested;
             // maxZoneNum = d3.max(centers, c => c.TAZ_ID);
@@ -199,17 +311,19 @@
                 //convert given coordinates array into
                 let latlog = getLatlongMap(value.geometry.coordinates[0]);
 
+                const zoneId = value.properties.TAZ_ID;
                 let drawZone = new google.maps.Polygon({
                     paths: latlog,
                     strokeColor: "black",
                     strokeOpacity: 0.2,
                     strokeWeight: 1.5,
-                    fillColor: "green",
-                    fillOpacity: 0.4
+                    fillColor: getZoneColor(zoneId),
+                    fillOpacity: 1
                 });
                 drawZone.setMap(map);
-                drawZone.zone = value.properties.TAZ_ID;
+                drawZone.zone = zoneId;
                 drawZone.setColorValue = 0;
+                calculateColors();
 
                 google.maps.event.addListener(drawZone, 'click', function (event) {
 
@@ -221,24 +335,7 @@
                         infowindow.close();
                     }
                     if (clickedZone && clickedZone == value.properties) {
-                        for (let i = 0; i < drawZones.length; i++) {
-                            drawZones[i].setOptions({
-                                fillColor: "green",
-                                strokeWeight: 1.5,
-                                fillOpacity: 0.2
-                            });
-                        }
-                        if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length > 0) {
-                            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
-                        }
-
-
-                        directionsDisplays.forEach((d) => {
-                            d.setDirections({
-                                routes: []
-                            });
-                        });
-                        clickedZone = undefined;
+                        clearSelection();
                     } else if (clickedZone) {
                         let clicked = subClickedZones.find(function (d) {
                             return d == value.properties
@@ -254,7 +351,7 @@
                             subClickedZones = [];
                             let selectable = false;
                             data.data.forEach((d) => {
-                                if (d.Destination_Zone == clickedZone.OBJECTID_1 && d.Origin_Zone == value.properties.OBJECTID_1) {
+                                if (d.Destination_Zone == clickedZone.TAZ_ID && d.Origin_Zone == value.properties.TAZ_ID) {
                                     selectable = true;
                                 }
                             });
@@ -278,21 +375,7 @@
                         if (window.direction == 'inbound') {
                             clickedZone = value.properties;
                             for (let i = 0; i < drawZones.length; i++) {
-                                drawZones[i].setOptions({
-                                    fillColor: "rgba(0,0,0,.03)",
-                                    strokeWeight: 0,
-                                    fillOpacity: 1,
-                                    zIndex: 0
-                                });
                                 drawZones[i].setColorValue = 0;
-                            }
-
-                            // Create the legend and display on the map
-                            if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
-                            } else {
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend);
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
                             }
 
 
@@ -304,23 +387,13 @@
                                 });
                             });
 
+                            selectZone(this.zone);
+
                             directionsDisplays = [];
                             let zoneRoutes = [];
                             for (let i = 0; i < data.data.length; i++) {
-
                                 if (data.data[i].Destination_Zone == value.properties.OBJECTID_1) {
-
                                     if (data.data[i].Origin_Zone - 1 < maxZoneNum) {
-
-                                        const dz = drawZones[data.data[i].Origin_Zone - 1];
-                                        dz.setColorValue += Number(data.data[i].Count);
-                                        zoneColor = dz.setColorValue;
-                                        dz.setOptions({
-                                            fillColor: color_range(dz.setColorValue),
-                                            strokeWeight: 2.0,
-                                            fillOpacity: 1
-                                        });
-
                                         //Draw the path between the two zones.
                                         if (routeCount < 100) {
                                             zoneRoutes.push({
@@ -335,33 +408,12 @@
                                 }
                             }
 
-                            drawZone.setOptions({
-                                fillColor: "green",
-                                strokeWeight: 2.0,
-                                fillOpacity: 0.4
-                            });
-
-                        } else {
+                        } else { // if outbound
 
                             clickedZone = value.properties;
                             for (let i = 0; i < drawZones.length; i++) {
-                                drawZones[i].setOptions({
-                                    fillColor: "rgba(0,0,0,.03)",
-                                    strokeWeight: 0,
-                                    fillOpacity: 1,
-                                    zIndex: 0
-                                });
                                 drawZones[i].setColorValue = 0;
                             }
-
-                            // Create the legend and display on the map
-                            if (map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].length < 1) {
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
-                            } else {
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].pop(legend2);
-                                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend2);
-                            }
-
 
                             let routeCount = 0;
                             //Clear previous paths
@@ -370,6 +422,8 @@
                                     routes: []
                                 });
                             });
+
+                            selectZone(this.zone);
 
                             directionsDisplays = [];
                             let zoneRoutes = [];
@@ -378,13 +432,6 @@
                             for (let i = 0; i < data.data.length; i++) {
                                 if (data.data[i].Origin_Zone == value.properties.OBJECTID_1) {
                                     if (data.data[i].Destination_Zone - 1 < maxZoneNum) {
-                                        drawZones[data.data[i].Destination_Zone - 1].setColorValue += Number(data.data[i].Count);
-                                        zoneColor = drawZones[data.data[i].Destination_Zone - 1].setColorValue;
-                                        drawZones[data.data[i].Destination_Zone - 1].setOptions({
-                                            fillColor: color_range2(drawZones[data.data[i].Destination_Zone - 1].setColorValue),
-                                            strokeWeight: 2.0,
-                                            fillOpacity: 1
-                                        });
                                         //Draw the path between the two zones.
                                         if (routeCount < 100) {
                                             zoneRoutes.push({
@@ -399,20 +446,12 @@
                                 }
 
                             }
-
-                            drawZone.setOptions({
-                                fillColor: "green",
-                                strokeWeight: 2.0,
-                                fillOpacity: 0.4
-                            });
-
-
                         }
                     }
 
 
-                    resetTopTenBg();
-                    buttonAll.style.backgroundColor = topTenBg;
+                    // resetTopTenBg();
+                    // buttonAll.style.backgroundColor = topTenBg;
 
                 });
                 google.maps.event.addListener(drawZone, 'mouseover', function (event) {
@@ -475,7 +514,7 @@
                         }
                     }
 
-                    infowindow.setContent("<p>Zone: " + value.properties.OBJECTID_1 + ".</p><p>County: " + value.properties.COUNTY + ".</p><p>Total Origin Trips: " + Math.ceil(totalOrigin) + ".</p><p>Total Destination Trips: " + Math.ceil(totalDest) + ".</p>");
+                    infowindow.setContent("<p>Zone: " + value.properties.OBJECTID_1 + "</p><p>County: " + value.properties.COUNTY + "</p><p>Total Origin Trips: " + Math.ceil(totalOrigin) + "</p><p>Total Destination Trips: " + Math.ceil(totalDest) + "</p>");
                     infowindow.setPosition(drawZone.getBounds().getCenter());
                     infowindow.open(map);
                     closeInfoWindow = true;
@@ -518,7 +557,7 @@
 
             let centerControl = new CenterControl(legend3, map);
 
-            map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
+            // map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend3);
             if (Object.keys(markers).length > 0) d3.select('#loader').classed('hidden', true);
 
         }
@@ -597,9 +636,9 @@
 
             }
 
-            resetTopTenBg();
-            buttonAll.style.backgroundColor = topTenBg;
-            controlUI.style.backgroundColor = topTenSelectedBg;
+            // resetTopTenBg();
+            // buttonAll.style.backgroundColor = topTenBg;
+            // controlUI.style.backgroundColor = topTenSelectedBg;
 
             let legend4 = document.createElement('div');
             legend4.id = 'legend4';
@@ -683,9 +722,8 @@
                     });
             }
 
-            resetTopTenBg();
-            controlUI.style.backgroundColor = topTenSelectedBg;
-
+            // resetTopTenBg();
+            // controlUI.style.backgroundColor = topTenSelectedBg;
 
             let legend4 = document.createElement('div');
             legend4.id = 'legend4';
@@ -762,9 +800,9 @@
                 });
             }
 
-            resetTopTenBg();
-            buttonAll.style.backgroundColor = topTenBg;
-            controlUI2.style.backgroundColor = topTenBg;
+            // resetTopTenBg();
+            // buttonAll.style.backgroundColor = topTenBg;
+            // controlUI2.style.backgroundColor = topTenBg;
 
         });
 
