@@ -3,6 +3,8 @@
 
 ### [Hosted Project](http://cs424-project3.s3-website-us-east-1.amazonaws.com/)
 
+### [Write-up](https://drive.google.com/open?id=0B6x3HIilWkMASVRBUkx2d3NRYmc)
+
 ### Students
 * [Federico Ruiz](https://github.com/fedex995)
 * [Sergio Barajas](https://github.com/sbaraj5)
