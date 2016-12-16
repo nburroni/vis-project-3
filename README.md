@@ -1,5 +1,4 @@
-# CS 424 Fall 2016 - Visualization & Visual Analytics 1 
-## Project 3
+# TRB Data Contest - Orlando Travel Data
 
 ### [Hosted Project](http://cs424-project3.s3-website-us-east-1.amazonaws.com/)
 
